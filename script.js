@@ -1,10 +1,10 @@
 /* =======================================================
    ARQUIVO: script.js (Portal Principal)
-   (Lógica de Login, Abas, Tema Personalizado e Iframe)
+   (Lógica de Login Seguro, Abas, Tema Personalizado e Iframe)
    ======================================================= */
 
-// A SUA URL DA API DE LOGIN
-const URL_API_LOGIN = "https://script.google.com/macros/s/AKfycbwxCNM7-XWJm2btht000tgZ343KsmCfwFG4gXmCCp8e-48nPDdS3Qw9gfvkJGWGu6ym/exec";
+// A URL DO SEU NOVO BACKEND (O COFRE SEGURO DO APPS SCRIPT)
+const URL_API_LOGIN = "https://script.google.com/macros/s/SUA_NOVA_URL_AQUI/exec";
 
 // ==========================================
 // INICIALIZAÇÃO
@@ -12,7 +12,8 @@ const URL_API_LOGIN = "https://script.google.com/macros/s/AKfycbwxCNM7-XWJm2btht
 window.onload = function() {
     carregarTema(); 
     
-    if (sessionStorage.getItem("sessaoAtiva") === "true") {
+    // Verifica se há uma sessão ativa e um token válido salvo
+    if (sessionStorage.getItem("sessaoAtiva") === "true" && sessionStorage.getItem("vertec_token")) {
         liberarPortal(sessionStorage.getItem("nomeUsuario"));
     }
 };
@@ -42,22 +43,28 @@ async function fazerLogin(e) {
     btn.disabled = true;
     err.style.display = "none";
 
-    const payload = {
-        acao: "login",
-        usuario: document.getElementById('loginUser').value.trim().toLowerCase(),
-        senha: document.getElementById('loginPass').value.trim()
-    };
+    // NOVO: Usando URLSearchParams para compatibilidade com a segurança do backend
+    const payload = new URLSearchParams();
+    payload.append('acao', 'login');
+    payload.append('email', document.getElementById('loginUser').value.trim().toLowerCase());
+    payload.append('senha', document.getElementById('loginPass').value.trim());
 
     try {
-        const req = await fetch(URL_API_LOGIN, { method: 'POST', body: JSON.stringify(payload) });
+        const req = await fetch(URL_API_LOGIN, { 
+            method: 'POST', 
+            body: payload 
+        });
         const res = await req.json();
 
         if (res.sucesso) {
+            // NOVO: Salvando o Crachá Digital (Token) na sessão do navegador
             sessionStorage.setItem("sessaoAtiva", "true");
             sessionStorage.setItem("nomeUsuario", res.nome);
+            sessionStorage.setItem("vertec_token", res.token); // BARREIRA DE SEGURANÇA
+            
             liberarPortal(res.nome);
         } else {
-            err.innerText = "⚠️ " + res.mensagem;
+            err.innerText = "⚠️ " + (res.erro || res.mensagem || "Acesso negado.");
             err.style.display = "block";
         }
     } catch (erro) {
@@ -78,6 +85,7 @@ function liberarPortal(nome) {
 }
 
 function sair() {
+    // Destrói o token e encerra a sessão imediatamente
     sessionStorage.clear();
     
     document.getElementById('portal-wrapper').style.display = 'none';
@@ -113,7 +121,6 @@ function mudarAba(abaId) {
         document.getElementById('topbar-title').innerText = "Dashboard";
         document.querySelector('.menu-item:nth-child(1)').classList.add('active');
         
-        // Limpa o Iframe caso volte para a Home
         document.getElementById('frame-sistema').src = "";
         
     } else if (abaId === 'configuracoes') {
@@ -128,28 +135,21 @@ function mudarAba(abaId) {
     }
 }
 
-// NOVO: Função Inteligente de Roteamento (Desktop vs Mobile)
 function abrirModulo(urlDestino, titulo, elementoClicado) {
-    // Verifica a largura da tela (Se é telemóvel ou Desktop)
     const ehMobile = window.innerWidth <= 1024;
 
     if (ehMobile) {
-        // MOBILE: Comportamento Clássico (Recarrega a página toda)
         window.location.href = urlDestino;
     } else {
-        // DESKTOP: Usa o Iframe e mantém a barra lateral
         limparAtivos();
         
-        // Ativa o botão clicado
         elementoClicado.classList.add('active');
         document.getElementById('topbar-title').innerText = titulo;
         
-        // Mostra o Iframe e carrega a URL
         const viewIframe = document.getElementById('view-iframe');
         viewIframe.style.display = 'block';
         setTimeout(() => viewIframe.classList.add('active'), 10);
         
-        // CORREÇÃO: Garante que o GitHub Pages resolve o caminho corretamente
         const baseUrl = window.location.href.split('index.html')[0];
         document.getElementById('frame-sistema').src = baseUrl + urlDestino;
     }
