@@ -1,9 +1,9 @@
 /* =======================================================
    ARQUIVO: script.js (CONTRATOS)
-   Totalmente Padronizado (Material Icons e UI Unificada)
+   Atualizado com separação de Dashboard (5 itens) e Histórico
    ======================================================= */
 
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxCKrxzasV4C98BEdwJH4-YIfvsUSLdCiQQvkStfuB4VPH8riPE5iT0otTcbv9iNGkQ/exec"; // <<<<<<<< COLOQUE SUA URL AQUI
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxbse_e4yHrjEQgPDT1qNn-ig58Vm1c6t31RMhVu887-6kbvd7BD_2Oys3GV0sKnnMM/exec"; // <<<<<<<< COLOQUE SUA URL AQUI
 
 let todosContratos = [];
 let contratosFiltrados = [];
@@ -11,6 +11,7 @@ let paginaAtual = 1;
 const itensPorPagina = 10;
 let idContratoEditando = null; 
 let idContratoExcluindo = null;
+let vistaAtual = 'dashboard'; // Controla onde o usuário está ('dashboard', 'historico' ou 'form')
 
 // =========================================================================
 // INICIALIZAÇÃO GERAL E LOADERS
@@ -19,7 +20,8 @@ document.addEventListener("DOMContentLoaded", function() {
     definirDataHoje(); 
     atualizarPreviewServicos(); 
     atualizarPreviewPagamento();
-    carregarContratos();
+    // Ao iniciar, carrega apenas o Dashboard (os 5 últimos)
+    carregarDashboard();
 });
 
 function showLoader(txt = "Aguarde...") { 
@@ -38,37 +40,102 @@ function mostrarAlertaForm(msg) {
 }
 
 // =========================================================================
-// CARREGAR CONTRATOS, FILTROS E TABELA
+// NAVEGAÇÃO ENTRE ABAS (SPA)
 // =========================================================================
-function carregarContratos() {
-    showLoader("A carregar contratos...");
-    const tbody = document.getElementById('tabelaContratosBody');
+function abrirHistorico() {
+    vistaAtual = 'historico';
+    document.getElementById('dashboardView').classList.remove('active');
+    document.getElementById('formView').classList.remove('active');
+    document.getElementById('historicoView').classList.add('active');
+    carregarHistorico();
+}
+
+function voltarParaPainel(recarregar = false) {
+    idContratoEditando = null;
+    document.getElementById('formView').classList.remove('active');
+    
+    // Volta para a aba que estava antes de abrir o formulário
+    if (vistaAtual === 'historico') {
+        document.getElementById('historicoView').classList.add('active');
+        if (recarregar) carregarHistorico();
+    } else {
+        document.getElementById('dashboardView').classList.add('active');
+        vistaAtual = 'dashboard'; // Garante que o estado seja dashboard
+        if (recarregar) carregarDashboard();
+    }
+    
+    resetaFormularioGeral();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function fecharHistorico() {
+    vistaAtual = 'dashboard';
+    document.getElementById('historicoView').classList.remove('active');
+    document.getElementById('dashboardView').classList.add('active');
+    carregarDashboard();
+}
+
+// =========================================================================
+// CARREGAR DADOS DO BACKEND
+// =========================================================================
+
+// Busca apenas os 5 últimos para a página inicial
+function carregarDashboard() {
+    showLoader("A carregar últimos contratos...");
     
     fetch(WEB_APP_URL, {
         method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action: "buscar_contratos" })
+        body: JSON.stringify({ action: "buscar_dashboard" })
+    })
+    .then(r => r.json()).then(res => {
+        if (res.status === 'success') { 
+            renderizarLinhasTabela(res.dados || [], 'tabelaDashboardBody'); 
+            
+            // Opcional: Atualiza métricas baseadas apenas nos 5 mais recentes, se desejar
+            // (Para métricas globais, precisaremos de um endpoint separado no futuro)
+            atualizarMetricas(res.dados || []);
+        } else {
+            document.getElementById('tabelaDashboardBody').innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#ef4444;">Erro: ${res.message}</td></tr>`;
+        }
+    })
+    .catch(e => { 
+        document.getElementById('tabelaDashboardBody').innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#ef4444;">Erro de conexão ao buscar os dados.</td></tr>'; 
+    })
+    .finally(() => { hideLoader(); });
+}
+
+// Busca toda a base de dados para o histórico e filtros
+function carregarHistorico() {
+    showLoader("A carregar histórico completo...");
+    
+    fetch(WEB_APP_URL, {
+        method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: "buscar_historico" })
     })
     .then(r => r.json()).then(res => {
         if (res.status === 'success') { 
             todosContratos = res.dados || []; 
             aplicarFiltros(); 
         } else {
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#ef4444;">Erro: ${res.message}</td></tr>`;
+            document.getElementById('tabelaHistoricoBody').innerHTML = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#ef4444;">Erro: ${res.message}</td></tr>`;
         }
     })
     .catch(e => { 
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#ef4444;">Erro de conexão ao buscar os dados.</td></tr>'; 
+        document.getElementById('tabelaHistoricoBody').innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#ef4444;">Erro de conexão ao buscar os dados.</td></tr>'; 
     })
     .finally(() => { hideLoader(); });
 }
 
+// =========================================================================
+// FILTROS E PAGINAÇÃO (Apenas no Histórico)
+// =========================================================================
 function aplicarFiltros() {
-    const termo = document.getElementById('inputBusca').value.toLowerCase();
-    const checkAtivo = document.getElementById('checkAtivo').checked;
-    const checkAvencer = document.getElementById('checkAvencer').checked;
-    const checkExpirado = document.getElementById('checkExpirado').checked;
-    const dataIni = document.getElementById('filtroDataIni').value;
-    const dataFim = document.getElementById('filtroDataFim').value;
+    const termo = document.getElementById('inputBusca') ? document.getElementById('inputBusca').value.toLowerCase() : "";
+    const checkAtivo = document.getElementById('checkAtivo') ? document.getElementById('checkAtivo').checked : false;
+    const checkAvencer = document.getElementById('checkAvencer') ? document.getElementById('checkAvencer').checked : false;
+    const checkExpirado = document.getElementById('checkExpirado') ? document.getElementById('checkExpirado').checked : false;
+    const dataIni = document.getElementById('filtroDataIni') ? document.getElementById('filtroDataIni').value : "";
+    const dataFim = document.getElementById('filtroDataFim') ? document.getElementById('filtroDataFim').value : "";
 
     contratosFiltrados = todosContratos.filter(c => {
         if (termo && !(c.cliente + " " + c.endereco).toLowerCase().includes(termo)) return false;
@@ -88,30 +155,73 @@ function aplicarFiltros() {
         return true;
     });
 
-    document.getElementById('cardTotal').textContent = contratosFiltrados.length;
-    document.getElementById('cardAtivos').textContent = contratosFiltrados.filter(c => c.status === 'Ativo').length;
-    document.getElementById('cardAVencer').textContent = contratosFiltrados.filter(c => c.status === 'A vencer').length;
-    document.getElementById('cardExpirados').textContent = contratosFiltrados.filter(c => c.status === 'Expirado').length;
-
+    atualizarMetricas(contratosFiltrados);
     paginaAtual = 1; 
-    renderizarTabela();
+    renderizarPaginacaoHistorico();
 }
 
-function renderizarTabela() {
-    const tbody = document.getElementById('tabelaContratosBody');
-    tbody.innerHTML = ''; 
-
-    if (contratosFiltrados.length === 0) { 
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#6b7280; font-style:italic;">Nenhum contrato encontrado.</td></tr>'; 
-        atualizarPaginacao();
-        return; 
+function atualizarMetricas(arrayDados) {
+    if(document.getElementById('cardTotal')) {
+        document.getElementById('cardTotal').textContent = arrayDados.length;
+        document.getElementById('cardAtivos').textContent = arrayDados.filter(c => c.status === 'Ativo').length;
+        document.getElementById('cardAVencer').textContent = arrayDados.filter(c => c.status === 'A vencer').length;
+        document.getElementById('cardExpirados').textContent = arrayDados.filter(c => c.status === 'Expirado').length;
     }
+}
 
+function renderizarPaginacaoHistorico() {
     const inicio = (paginaAtual - 1) * itensPorPagina;
     const fim = inicio + itensPorPagina;
     const itensPagina = contratosFiltrados.slice(inicio, fim);
 
-    itensPagina.forEach(c => {
+    renderizarLinhasTabela(itensPagina, 'tabelaHistoricoBody');
+    atualizarControlesPaginacao();
+}
+
+function atualizarControlesPaginacao() {
+    const totalPaginas = Math.ceil(contratosFiltrados.length / itensPorPagina) || 1;
+    if(document.getElementById('info-page')) {
+        document.getElementById('info-page').innerText = `Página ${paginaAtual} de ${totalPaginas}`;
+        document.getElementById('btn-prev-page').disabled = paginaAtual === 1;
+        document.getElementById('btn-next-page').disabled = paginaAtual === totalPaginas;
+    }
+}
+
+function mudarPagina(direcao) {
+    const totalPaginas = Math.ceil(contratosFiltrados.length / itensPorPagina) || 1;
+    if (direcao === 'prev' && paginaAtual > 1) paginaAtual--;
+    else if (direcao === 'next' && paginaAtual < totalPaginas) paginaAtual++;
+    renderizarPaginacaoHistorico();
+}
+
+function limparFiltrosData() { 
+    if(document.getElementById('filtroDataIni')) document.getElementById('filtroDataIni').value = ""; 
+    if(document.getElementById('filtroDataFim')) document.getElementById('filtroDataFim').value = ""; 
+    aplicarFiltros(); 
+}
+
+// Listeners de filtro
+document.addEventListener("DOMContentLoaded", function() {
+    const b = document.getElementById('inputBusca'); if(b) b.addEventListener('input', aplicarFiltros);
+    const di = document.getElementById('filtroDataIni'); if(di) di.addEventListener('change', aplicarFiltros);
+    const df = document.getElementById('filtroDataFim'); if(df) df.addEventListener('change', aplicarFiltros);
+    document.querySelectorAll('.filtro-status').forEach(cb => cb.addEventListener('change', aplicarFiltros));
+});
+
+// =========================================================================
+// RENDERIZAÇÃO GENÉRICA DE TABELAS
+// =========================================================================
+function renderizarLinhasTabela(dados, tbodyId) {
+    const tbody = document.getElementById(tbodyId);
+    if (!tbody) return;
+    tbody.innerHTML = ''; 
+
+    if (dados.length === 0) { 
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#6b7280; font-style:italic;">Nenhum contrato encontrado.</td></tr>'; 
+        return; 
+    }
+
+    dados.forEach(c => {
         let bColor = c.status === 'Ativo' ? '#10b981' : (c.status === 'A vencer' ? '#f59e0b' : '#ef4444');
         let bBg = c.status === 'Ativo' ? '#d1fae5' : (c.status === 'A vencer' ? '#fef3c7' : '#fee2e2');
         let linkDown = c.link ? c.link.replace(/\/file\/d\/(.*?)\/view.*/, '/uc?export=download&id=$1') : "#";
@@ -135,34 +245,7 @@ function renderizarTabela() {
                 <td>${acoesHtml}</td>
             </tr>`;
     });
-
-    atualizarPaginacao();
 }
-
-function atualizarPaginacao() {
-    const totalPaginas = Math.ceil(contratosFiltrados.length / itensPorPagina) || 1;
-    document.getElementById('info-page').innerText = `Página ${paginaAtual} de ${totalPaginas}`;
-    document.getElementById('btn-prev-page').disabled = paginaAtual === 1;
-    document.getElementById('btn-next-page').disabled = paginaAtual === totalPaginas;
-}
-
-function mudarPagina(direcao) {
-    const totalPaginas = Math.ceil(contratosFiltrados.length / itensPorPagina) || 1;
-    if (direcao === 'prev' && paginaAtual > 1) paginaAtual--;
-    else if (direcao === 'next' && paginaAtual < totalPaginas) paginaAtual++;
-    renderizarTabela();
-}
-
-function limparFiltrosData() { 
-    document.getElementById('filtroDataIni').value = ""; 
-    document.getElementById('filtroDataFim').value = ""; 
-    aplicarFiltros(); 
-}
-
-document.getElementById('inputBusca').addEventListener('input', aplicarFiltros);
-document.getElementById('filtroDataIni').addEventListener('change', aplicarFiltros);
-document.getElementById('filtroDataFim').addEventListener('change', aplicarFiltros);
-document.querySelectorAll('.filtro-status').forEach(cb => cb.addEventListener('change', aplicarFiltros));
 
 // =========================================================================
 // AÇÕES: EDITAR E EXCLUIR
@@ -185,8 +268,11 @@ function preencherFormParaEdicao(dados) {
     document.getElementById('formTitle').textContent = "Editar Contrato";
     resetaFormularioGeral();
 
-    document.getElementById('alertaEdicao').style.display = 'flex';
-    document.getElementById('spanIdEdicao').innerText = dados.id;
+    // Cria os alertas de edição caso existam no HTML
+    const alerta = document.getElementById('alertaEdicao');
+    if(alerta) alerta.style.display = 'flex';
+    const idSpan = document.getElementById('spanIdEdicao');
+    if(idSpan) idSpan.innerText = dados.id;
 
     document.getElementById('empresa').value = dados.empresa || "";
     document.getElementById('nomeFantasia').value = dados.nomeFantasia || "";
@@ -217,6 +303,7 @@ function preencherFormParaEdicao(dados) {
     document.querySelectorAll('.auto-req').forEach(el=>el.required=false);
 
     document.getElementById('dashboardView').classList.remove('active');
+    if(document.getElementById('historicoView')) document.getElementById('historicoView').classList.remove('active');
     document.getElementById('formView').classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -241,8 +328,15 @@ document.getElementById('btnConfirmarExclusao').addEventListener('click', functi
         method: 'POST', mode: 'cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
         body: JSON.stringify({ action: "excluir_contrato", id: idContratoExcluindo })
     })
-    .then(r => r.json()).then(res => { carregarContratos(); })
-    .catch(e => { alert("Erro de conexão ao excluir."); carregarContratos(); })
+    .then(r => r.json()).then(res => { 
+        if(vistaAtual === 'historico') carregarHistorico();
+        else carregarDashboard();
+    })
+    .catch(e => { 
+        alert("Erro de conexão ao excluir."); 
+        if(vistaAtual === 'historico') carregarHistorico();
+        else carregarDashboard();
+    })
     .finally(() => { hideLoader(); });
 });
 
@@ -254,7 +348,7 @@ function resetaFormularioGeral() {
     document.getElementById('successMessage').style.display = 'none';
     document.getElementById('formWrapper').style.display = 'block';
     document.getElementById('alertBox').style.display = 'none';
-    document.getElementById('alertaEdicao').style.display = 'none';
+    if(document.getElementById('alertaEdicao')) document.getElementById('alertaEdicao').style.display = 'none';
 
     document.getElementById('modoManualServicos').checked = false;
     document.getElementById('caixaPreviewServicos').style.display = 'block';
@@ -286,23 +380,13 @@ function abrirNovoContrato() {
     atualizarPreviewPagamento();
     
     document.getElementById('dashboardView').classList.remove('active');
+    if(document.getElementById('historicoView')) document.getElementById('historicoView').classList.remove('active');
     document.getElementById('formView').classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function cancelarEdicao() {
     voltarParaPainel(false);
-}
-
-function voltarParaPainel(recarregar = false) {
-    try {
-        idContratoEditando = null;
-        document.getElementById('formView').classList.remove('active');
-        document.getElementById('dashboardView').classList.add('active');
-        resetaFormularioGeral();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        if (recarregar) carregarContratos(); 
-    } catch(e) { console.error("Erro ao voltar:", e); }
 }
 
 // =========================================================================
@@ -426,8 +510,17 @@ document.getElementById('contractForm').addEventListener('submit', function(e) {
     const payload = {
         action: "gerar_contrato", 
         idContratoEdicao: idContratoEditando,
-        empresa: document.getElementById('empresa').value, nomeFantasia: document.getElementById('nomeFantasia').value, cnpj: document.getElementById('cnpj').value, endereco: document.getElementById('endereco').value, imovelArtigo: document.getElementById('imovelArtigo').value,
-        areaDefinida: "", servicos: sv, comodato: document.getElementById('comodato').checked, qtdArandelas: document.getElementById('comodato').checked ? Number(document.getElementById('qtdArandelas').value) : 0, qtdVisitas: Number(document.getElementById('qtdVisitas').value), periodoVisitas: document.getElementById('periodoVisitas').value,
+        empresa: document.getElementById('empresa').value, 
+        nomeFantasia: document.getElementById('nomeFantasia').value, 
+        cnpj: document.getElementById('cnpj').value, 
+        endereco: document.getElementById('endereco').value, 
+        imovelArtigo: document.getElementById('imovelArtigo').value,
+        areaDefinida: "", 
+        servicos: sv, 
+        comodato: document.getElementById('comodato').checked, 
+        qtdArandelas: document.getElementById('comodato').checked ? Number(document.getElementById('qtdArandelas').value) : 0, 
+        qtdVisitas: Number(document.getElementById('qtdVisitas').value), 
+        periodoVisitas: document.getElementById('periodoVisitas').value,
         textoServicosFinal: document.getElementById('modoManualServicos').checked ? document.getElementById('textoServicosManual').value : getTextoAutoServicos(),
         textoPagamentoFinal: document.getElementById('modoManualPagamento').checked ? document.getElementById('textoPagamentoManual').value : getTextoAutoPagamento(),
         dataContrato: document.getElementById('dataContrato').value
