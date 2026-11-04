@@ -1,6 +1,6 @@
 /* =======================================================
    ARQUIVO: script.js (ORÇAMENTOS)
-   Lógica de Interface, Integração com Google Apps Script e Quill
+   Lógica de Interface, Integração com Apps Script e Quill
    ======================================================= */
 
 const URL_BACKEND = "https://script.google.com/macros/s/AKfycbzGW_NlHX3IXbsmcH_q1jEpm7PHiwuiKJlGDMKtuJU88aSgETrwA9wUJgrIDoO7GUVQ/exec"; 
@@ -10,8 +10,6 @@ var quillDetalhamento;
 let todosOrcamentos = []; 
 let paginaAtual = 1;
 const itensPorPagina = 10;
-
-// Objeto de Filtros (Cliente -> Código -> Data Inicial / Data Final)
 let filtroAtual = { cliente: '', codigo: '', dataInicio: '', dataFim: '' };
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -20,8 +18,19 @@ window.addEventListener('DOMContentLoaded', () => {
     carregarDashboard(); 
 });
 
+// ==========================================
+// LOADER GLOBAL
+// ==========================================
+function showLoader(txt = "Aguarde...") { 
+    document.getElementById("loader-text").innerText = txt; 
+    document.getElementById("loader").style.display = "flex"; 
+}
+function hideLoader() { 
+    document.getElementById("loader").style.display = "none"; 
+}
+
 // ==========================================================
-// SISTEMA DE MODAL CUSTOMIZADO
+// SISTEMA DE MODAL CUSTOMIZADO (Padrão Recibos)
 // ==========================================================
 function mostrarModal(mensagem, tipo = 'alerta', callbackConfirmacao = null) {
     const modal = document.getElementById('modal-sistema');
@@ -33,7 +42,8 @@ function mostrarModal(mensagem, tipo = 'alerta', callbackConfirmacao = null) {
     
     if (tipo === 'alerta') {
         const btnOk = document.createElement('button');
-        btnOk.className = 'btn btn-blue btn-novo';
+        btnOk.className = 'btn-action btn-novo';
+        btnOk.style.width = '100%';
         btnOk.innerText = 'OK';
         btnOk.onclick = () => { 
             modal.style.display = 'none'; 
@@ -43,12 +53,12 @@ function mostrarModal(mensagem, tipo = 'alerta', callbackConfirmacao = null) {
     } 
     else if (tipo === 'confirmacao') {
         const btnCancelar = document.createElement('button');
-        btnCancelar.className = 'btn btn-white btn-historico';
+        btnCancelar.className = 'btn-cancel';
         btnCancelar.innerText = 'Cancelar';
         btnCancelar.onclick = () => { modal.style.display = 'none'; };
         
         const btnConfirmar = document.createElement('button');
-        btnConfirmar.className = 'btn btn-danger';
+        btnConfirmar.className = 'btn-danger';
         btnConfirmar.innerText = 'Sim, Excluir';
         btnConfirmar.onclick = () => {
             modal.style.display = 'none';
@@ -63,30 +73,18 @@ function mostrarModal(mensagem, tipo = 'alerta', callbackConfirmacao = null) {
 }
 
 // ==========================================================
-// LÓGICA DE TELAS (SPA) - AGORA COM O PADRÃO ACTIVE
+// LÓGICA DE TELAS (SPA - ACTIVE)
 // ==========================================================
 function alternarTela(telaAlvo) {
-    const viewDashboard = document.getElementById('view-dashboard');
-    const viewHistorico = document.getElementById('view-historico');
-    const viewFormulario = document.getElementById('view-formulario');
+    document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
+    document.getElementById('view-' + telaAlvo).classList.add('active');
 
-    // Remove a classe 'active' de todas as abas (ocultando-as)
-    viewDashboard.classList.remove('active');
-    viewHistorico.classList.remove('active');
-    viewFormulario.classList.remove('active');
-
-    // Adiciona a classe 'active' apenas à aba que queremos ver
     if (telaAlvo === 'dashboard') {
-        viewDashboard.classList.add('active');
         carregarDashboard(); 
     } else if (telaAlvo === 'historico') {
-        viewHistorico.classList.add('active');
         carregarHistorico(paginaAtual);
-    } else if (telaAlvo === 'formulario') {
-        viewFormulario.classList.add('active');
     }
-    
-    window.scrollTo(0,0); // Rola para o topo suavemente
+    window.scrollTo(0,0);
 }
 
 // ==========================================================
@@ -123,7 +121,7 @@ function construirUrlQuery(pagina, limite) {
 async function carregarDashboard() {
     const tabelaDashboard = document.getElementById('tabela-dashboard');
     const totalRegistradoTexto = document.getElementById('total-registrado');
-    tabelaDashboard.innerHTML = '<tr><td colspan="5" style="text-align: center;">Carregando dados... <i class="fas fa-spinner fa-spin"></i></td></tr>';
+    tabelaDashboard.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #6b7280;">A carregar dados...</td></tr>';
     
     try {
         const resposta = await fetch(`${URL_BACKEND}?pagina=1&limite=5`);
@@ -135,7 +133,7 @@ async function carregarDashboard() {
             
             tabelaDashboard.innerHTML = '';
             if (arrayDados.length === 0) {
-                tabelaDashboard.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nenhum orçamento registrado.</td></tr>';
+                tabelaDashboard.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #6b7280;">Nenhum orçamento registado.</td></tr>';
             } else {
                 arrayDados.forEach(orcamento => {
                     tabelaDashboard.appendChild(criarLinhaTabela(orcamento));
@@ -146,13 +144,14 @@ async function carregarDashboard() {
         }
     } catch (erro) {
         console.error(erro);
-        tabelaDashboard.innerHTML = `<tr><td colspan="5" style="color: var(--error-color); text-align: center;">Erro de conexão.</td></tr>`;
+        tabelaDashboard.innerHTML = `<tr><td colspan="5" style="color: var(--error-color); text-align: center;">Erro de ligação.</td></tr>`;
     }
 }
 
 async function carregarHistorico(pagina) {
     const tabelaHistorico = document.getElementById('tabela-historico');
-    tabelaHistorico.innerHTML = '<tr><td colspan="5" style="text-align: center;">Carregando dados... <i class="fas fa-spinner fa-spin"></i></td></tr>';
+    tabelaHistorico.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #6b7280;">A carregar dados...</td></tr>';
+    showLoader("A carregar histórico...");
     
     try {
         const resposta = await fetch(construirUrlQuery(pagina, itensPorPagina));
@@ -165,7 +164,7 @@ async function carregarHistorico(pagina) {
             
             tabelaHistorico.innerHTML = '';
             if (todosOrcamentos.length === 0) {
-                tabelaHistorico.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nenhum orçamento encontrado.</td></tr>';
+                tabelaHistorico.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #6b7280;">Nenhum orçamento encontrado.</td></tr>';
             } else {
                 todosOrcamentos.forEach(orcamento => {
                     tabelaHistorico.appendChild(criarLinhaTabela(orcamento));
@@ -180,22 +179,24 @@ async function carregarHistorico(pagina) {
         }
     } catch (erro) {
         console.error(erro);
-        tabelaHistorico.innerHTML = `<tr><td colspan="5" style="color: var(--error-color); text-align: center;">Erro de conexão.</td></tr>`;
+        tabelaHistorico.innerHTML = `<tr><td colspan="5" style="color: var(--error-color); text-align: center;">Erro de ligação.</td></tr>`;
+    } finally {
+        hideLoader();
     }
 }
 
 function criarLinhaTabela(orcamento) {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-        <td class="cliente-nome"><strong>${orcamento.cliente}</strong></td>
+        <td><strong>${orcamento.cliente}</strong></td>
         <td>${orcamento.dataEmissao}</td>
         <td>${orcamento.valor}</td>
-        <td><strong>${orcamento.codigo}</strong></td>
-        <td>
-            <div class="acoes actions">
-                <button type="button" class="icon-btn icon-share" onclick="window.open('${orcamento.urlPdf}', '_blank')" title="Abrir PDF"><span class="material-icons">visibility</span></button>
-                <button type="button" class="icon-btn icon-edit" onclick="editarOrcamento('${orcamento.codigo}')" title="Editar Orçamento"><span class="material-icons">edit</span></button>
-                <button type="button" class="icon-btn icon-del" onclick="excluirArquivoDoDrive('${orcamento.urlPdf}')" title="Excluir Arquivo"><span class="material-icons">delete</span></button>
+        <td style="text-align: center; color:#1f2937;">${orcamento.codigo}</td>
+        <td style="text-align: center;">
+            <div class="actions">
+                <button type="button" class="icon-btn icon-share" onclick="window.open('${orcamento.urlPdf}', '_blank')" title="Ver PDF"><span class="material-icons">visibility</span></button>
+                <button type="button" class="icon-btn icon-edit" onclick="editarOrcamento('${orcamento.codigo}')" title="Editar"><span class="material-icons">edit</span></button>
+                <button type="button" class="icon-btn icon-del" onclick="excluirArquivoDoDrive('${orcamento.urlPdf}')" title="Apagar"><span class="material-icons">delete</span></button>
             </div>
         </td>
     `;
@@ -210,8 +211,8 @@ function mudarPagina(direcao) {
 // LÓGICA DE EXCLUSÃO DE ARQUIVO
 // ==========================================================
 function excluirArquivoDoDrive(urlPdf) {
-    mostrarModal("Tem certeza que deseja apagar este orçamento?", "confirmacao", async () => {
-        mostrarModal("Enviando comando de exclusão... Por favor, aguarde.", "aviso");
+    mostrarModal("Tem a certeza que deseja apagar definitivamente este orçamento?", "confirmacao", async () => {
+        showLoader("A apagar ficheiro...");
 
         try {
             const dados = { acao: "excluir_arquivo", urlArquivo: urlPdf };
@@ -223,8 +224,7 @@ function excluirArquivoDoDrive(urlPdf) {
             const resultado = await resposta.json();
 
             if (resultado.sucesso) {
-                mostrarModal("✅ " + resultado.mensagem, "alerta", () => {
-                    // Atualizado para usar a classe .active
+                mostrarModal("Orçamento apagado com sucesso!", "alerta", () => {
                     if (document.getElementById('view-dashboard').classList.contains('active')) {
                         carregarDashboard();
                     } else {
@@ -232,10 +232,12 @@ function excluirArquivoDoDrive(urlPdf) {
                     }
                 });
             } else {
-                mostrarModal("❌ Erro ao excluir: " + resultado.erro, "alerta");
+                mostrarModal("Erro ao excluir: " + resultado.erro, "alerta");
             }
         } catch (erro) {
-            mostrarModal("❌ Erro de conexão ao tentar excluir.", "alerta");
+            mostrarModal("Erro de ligação ao tentar apagar.", "alerta");
+        } finally {
+            hideLoader();
         }
     });
 }
@@ -244,14 +246,13 @@ function excluirArquivoDoDrive(urlPdf) {
 // LÓGICA DE EDIÇÃO DE ORÇAMENTO 
 // ==========================================================
 async function editarOrcamento(codigo) {
-    mostrarModal("Carregando dados do orçamento...", "aviso");
+    showLoader("A carregar dados do orçamento...");
     
     try {
         const resposta = await fetch(`${URL_BACKEND}?pagina=1&limite=1&codigo=${codigo}`);
         const res = await resposta.json();
         
         if(res.sucesso && res.dados.orcamentos.length > 0) {
-            document.getElementById('modal-sistema').style.display = 'none';
             const orcamento = res.dados.orcamentos[0];
 
             document.getElementById('form-orcamento').reset();
@@ -292,14 +293,14 @@ async function editarOrcamento(codigo) {
                 acaoDesinsetizacao(document.getElementById('master-desinsetizacao').checked, true);
                 toggleSecao('sec-descupinizacao', document.getElementById('master-descupinizacao').checked);
                 toggleOutros();
-
-                mostrarModal("Dados restaurados! Revise e clique em Gerar.", "alerta");
             }
         } else {
-            mostrarModal("❌ Não foi possível carregar os dados para edição.", "alerta");
+            mostrarModal("Não foi possível carregar os dados para edição.", "alerta");
         }
     } catch(e) {
-        mostrarModal("❌ Erro de conexão ao tentar editar.", "alerta");
+        mostrarModal("Erro de ligação ao tentar editar.", "alerta");
+    } finally {
+        hideLoader();
     }
 }
 
@@ -384,27 +385,27 @@ async function enviarFormulario() {
     let det = quillDetalhamento.root.innerHTML; if(det === '<p><br></p>') det = '';
 
     if(!cli || !end || !dt || !vl) { 
-        mostrarModal("❌ Preencha Cliente, Endereço, Data e Valor.", "alerta"); 
+        mostrarModal("Preencha Cliente, Endereço, Data e Valor.", "alerta"); 
         return; 
     }
 
     const md1 = document.getElementById('master-desinsetizacao').checked, md2 = document.getElementById('master-desratizacao').checked, mc = document.getElementById('master-caramujos').checked, md3 = document.getElementById('master-descupinizacao').checked, mr = document.getElementById('master-reservatorios').checked, mq = document.getElementById('master-capina').checked;
     if (!md1 && !md2 && !mc && !md3 && !mr && !mq) { 
-        mostrarModal("❌ Selecione ao menos um serviço.", "alerta"); 
+        mostrarModal("Selecione ao menos um serviço.", "alerta"); 
         return; 
     }
 
     let prg = Array.from(document.querySelectorAll('input[name="praga"]:checked')).map(cb => cb.value);
     if (document.getElementById('praga-outros').checked) { const tx = document.getElementById('praga-outros-texto').value.trim(); if (tx) prg.push(tx); }
     if (prg.length === 0) { 
-        mostrarModal("❌ Selecione pelo menos uma praga.", "alerta"); 
+        mostrarModal("Selecione pelo menos uma praga.", "alerta"); 
         return; 
     }
 
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando Orçamento...'; 
+    btn.innerHTML = 'A processar...'; 
     btn.disabled = true; 
     
-    mostrarModal("Enviando dados e montando PDF. Por favor, aguarde...", "aviso");
+    showLoader("A gerar e a guardar orçamento PDF...");
 
     const configuracaoFormulario = {};
     document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
@@ -426,7 +427,7 @@ async function enviarFormulario() {
         const res = await r.json();
         
         if (res.sucesso) { 
-            mostrarModal(`✅ Orçamento gerado com sucesso!\nCódigo: ${res.codigo}`, "alerta", () => {
+            mostrarModal(`Orçamento gerado com sucesso!\nCódigo: ${res.codigo}`, "alerta", () => {
                 document.getElementById('form-orcamento').reset(); 
                 quillDetalhamento.root.innerHTML = ''; 
                 
@@ -434,16 +435,18 @@ async function enviarFormulario() {
                 toggleSecao('sec-descupinizacao', false);
                 
                 alternarTela('dashboard');
+                window.open(res.urlPdf, '_blank'); 
             });
         } 
         else { 
-            mostrarModal("❌ Erro: " + res.erro, "alerta"); 
+            mostrarModal("Erro: " + res.erro, "alerta"); 
         }
     } catch (e) { 
-        mostrarModal("❌ Erro de conexão ao tentar gerar.", "alerta"); 
+        mostrarModal("Erro de ligação ao tentar gerar.", "alerta"); 
     } 
     finally { 
-        btn.innerHTML = '<i class="fas fa-file-invoice"></i> Gerar Orçamento'; 
+        btn.innerHTML = '<span class="material-icons" style="font-size:18px;">request_quote</span> Gerar Orçamento'; 
         btn.disabled = false; 
+        hideLoader();
     }
 }
