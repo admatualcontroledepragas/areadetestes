@@ -4,7 +4,7 @@
    ======================================================= */
 
 // A URL DO SEU NOVO BACKEND (O COFRE SEGURO DO APPS SCRIPT)
-const URL_API_LOGIN = "https://script.google.com/macros/s/SUA_NOVA_URL_AQUI/exec";
+const URL_API_LOGIN = "https://script.google.com/macros/s/AKfycbwxCNM7-XWJm2btht000tgZ343KsmCfwFG4gXmCCp8e-48nPDdS3Qw9gfvkJGWGu6ym/exec";
 
 // ==========================================
 // INICIALIZAÇÃO
