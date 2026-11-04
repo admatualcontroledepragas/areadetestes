@@ -63,26 +63,30 @@ function mostrarModal(mensagem, tipo = 'alerta', callbackConfirmacao = null) {
 }
 
 // ==========================================================
-// LÓGICA DE TELAS (SPA)
+// LÓGICA DE TELAS (SPA) - AGORA COM O PADRÃO ACTIVE
 // ==========================================================
 function alternarTela(telaAlvo) {
     const viewDashboard = document.getElementById('view-dashboard');
     const viewHistorico = document.getElementById('view-historico');
     const viewFormulario = document.getElementById('view-formulario');
 
-    viewDashboard.classList.add('hidden');
-    viewHistorico.classList.add('hidden');
-    viewFormulario.classList.add('hidden');
+    // Remove a classe 'active' de todas as abas (ocultando-as)
+    viewDashboard.classList.remove('active');
+    viewHistorico.classList.remove('active');
+    viewFormulario.classList.remove('active');
 
+    // Adiciona a classe 'active' apenas à aba que queremos ver
     if (telaAlvo === 'dashboard') {
-        viewDashboard.classList.remove('hidden');
+        viewDashboard.classList.add('active');
         carregarDashboard(); 
     } else if (telaAlvo === 'historico') {
-        viewHistorico.classList.remove('hidden');
+        viewHistorico.classList.add('active');
         carregarHistorico(paginaAtual);
     } else if (telaAlvo === 'formulario') {
-        viewFormulario.classList.remove('hidden');
+        viewFormulario.classList.add('active');
     }
+    
+    window.scrollTo(0,0); // Rola para o topo suavemente
 }
 
 // ==========================================================
@@ -220,7 +224,8 @@ function excluirArquivoDoDrive(urlPdf) {
 
             if (resultado.sucesso) {
                 mostrarModal("✅ " + resultado.mensagem, "alerta", () => {
-                    if (!document.getElementById('view-dashboard').classList.contains('hidden')) {
+                    // Atualizado para usar a classe .active
+                    if (document.getElementById('view-dashboard').classList.contains('active')) {
                         carregarDashboard();
                     } else {
                         carregarHistorico(paginaAtual);
