@@ -47,11 +47,11 @@
     </div>
 
     <!-- =========================================
-         VIEW: DASHBOARD PRINCIPAL
+         VIEW 1: DASHBOARD PRINCIPAL (Resumo + 5 Últimos)
          ========================================= -->
     <div id="dashboardView" class="view-section active content">
         
-        <!-- Métricas Dinâmicas Padronizadas -->
+        <!-- Métricas Dinâmicas -->
         <div class="metrics-container">
             <div class="card-metric" style="border-left-color: #004481;">
                 <span style="text-transform: uppercase; font-size: 12px;">Total</span>
@@ -71,17 +71,64 @@
             </div>
         </div>
 
-        <!-- Barra de Ações (Busca e Botão Novo) -->
-        <div class="action-bar" style="justify-content: space-between;">
+        <!-- Barra de Ações (Apenas Botões Principais) -->
+        <div class="action-bar" style="justify-content: space-between; align-items: center;">
+            <h2 style="font-size: 18px; color: #14234c; margin: 0; display: flex; align-items: center; gap: 8px;">
+                <span class="material-icons" style="font-size: 20px; color: #6b7280;">schedule</span> 
+                Últimos 5 Registos
+            </h2>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-action btn-historico" onclick="abrirHistorico()">
+                    <span class="material-icons" style="font-size:18px;">list_alt</span> Ver Histórico
+                </button>
+                <button class="btn-action btn-novo" onclick="abrirNovoContrato()">
+                    <span class="material-icons" style="font-size:18px;">add_circle</span> Novo Contrato
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabela (5 Últimos) - Sem paginação -->
+        <div class="table-container">
+            <table class="styled-table" id="tabelaDashboard">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Emissão</th>
+                        <th style="width: 25%;">Cliente</th>
+                        <th style="width: 20%;">Endereço</th>
+                        <th style="width: 15%;">Encerramento</th>
+                        <th style="width: 10%; text-align: center;">Status</th>
+                        <th style="width: 15%; text-align: center;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaDashboardBody">
+                    <tr><td colspan="6" style="text-align:center; padding: 20px; color:#6b7280;">A carregar últimos contratos...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <!-- =========================================
+         VIEW 2: HISTÓRICO COMPLETO (Filtros + Paginação)
+         ========================================= -->
+    <div id="historicoView" class="view-section content">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+            <h2 style="margin:0; font-size: 20px; color:#111827; display: flex; align-items: center; gap: 8px;">
+                <span class="material-icons" style="color: #004481;">list_alt</span> Histórico Completo
+            </h2>
+            <button class="btn-action btn-historico" onclick="fecharHistorico()">
+                <span class="material-icons" style="font-size:18px;">arrow_back</span> Voltar ao Painel
+            </button>
+        </div>
+
+        <!-- Barra de Busca -->
+        <div class="action-bar" style="justify-content: flex-start;">
             <div style="flex: 1; max-width: 500px; display: flex; gap: 10px; width: 100%;">
                 <input type="text" id="inputBusca" class="form-input" placeholder="🔍 Buscar cliente ou endereço..." style="margin: 0; flex: 1;">
-                <button class="btn-action btn-historico" id="btnAtualizar" onclick="carregarContratos()">
+                <button class="btn-action btn-historico" id="btnAtualizar" onclick="carregarHistorico()">
                     <span class="material-icons" style="font-size:18px;">refresh</span> Atualizar
                 </button>
             </div>
-            <button class="btn-action btn-novo" onclick="abrirNovoContrato()">
-                <span class="material-icons" style="font-size:18px;">add_circle</span> Novo Contrato
-            </button>
         </div>
 
         <!-- Cartão de Filtros -->
@@ -104,14 +151,14 @@
                     </div>
                 </div>
             </div>
-            <div class="filter-buttons-container" style="justify-content: flex-end; margin-top: 15px; border-top: 1px solid #e5e7eb; padding-top: 15px;">
+            <div class="filter-buttons-container" style="justify-content: flex-end; margin-top: 15px; border-top: 1px solid #e5e7eb; padding-top: 15px; display: flex;">
                 <button class="btn-action btn-historico" style="min-width: auto; padding: 8px 16px;" onclick="limparFiltrosData()">Limpar Filtros</button>
             </div>
         </div>
 
-        <!-- Tabela -->
+        <!-- Tabela (Histórico Completo) -->
         <div class="table-container">
-            <table class="styled-table" id="tabelaContratos">
+            <table class="styled-table" id="tabelaHistorico">
                 <thead>
                     <tr>
                         <th style="width: 15%;">Emissão</th>
@@ -122,8 +169,8 @@
                         <th style="width: 15%; text-align: center;">Ações</th>
                     </tr>
                 </thead>
-                <tbody id="tabelaContratosBody">
-                    <tr><td colspan="6" style="text-align:center; padding: 20px; color:#6b7280;">Carregando contratos...</td></tr>
+                <tbody id="tabelaHistoricoBody">
+                    <tr><td colspan="6" style="text-align:center; padding: 20px; color:#6b7280;">A carregar histórico...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -136,8 +183,9 @@
         </div>
     </div>
 
+
     <!-- =========================================
-         VIEW: FORMULÁRIO (Preenchimento)
+         VIEW 3: FORMULÁRIO (Preenchimento e Edição)
          ========================================= -->
     <div id="formView" class="view-section content">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
@@ -165,6 +213,12 @@
 
             <!-- Caixa de Alerta do Formulário -->
             <div id="alertBox" class="alert-warning" style="display:none; background-color: #fffbeb; color: #b45309; border: 1px solid #fde68a; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            </div>
+
+            <!-- Alerta de Edição -->
+            <div id="alertaEdicao" style="display:none; background-color: #eff6ff; color: #1e3a8a; border: 1px solid #bfdbfe; padding: 15px; border-radius: 8px; margin-bottom: 20px; align-items: center; gap: 10px;">
+                <span class="material-icons">edit_note</span>
+                <span>A editar o contrato <strong><span id="spanIdEdicao"></span></strong></span>
             </div>
 
             <form id="contractForm">
@@ -198,8 +252,8 @@
                     <div class="form-group">
                         <label class="title-label">Área Definida</label>
                         <div style="display:flex; gap:10px; margin-bottom:10px;">
-                            <label class="option-lbl" style="background:#f8f9fa; padding:8px 12px; border:1px solid #e5e7eb; border-radius:6px; flex:1; justify-content:center;"><input type="checkbox" class="preview-servico-trigger" id="areaInterna"> Interna</label>
-                            <label class="option-lbl" style="background:#f8f9fa; padding:8px 12px; border:1px solid #e5e7eb; border-radius:6px; flex:1; justify-content:center;"><input type="checkbox" class="preview-servico-trigger" id="areaExterna"> Externa</label>
+                            <label class="option-lbl" style="background:#f8f9fa; padding:8px 12px; border:1px solid #e5e7eb; border-radius:6px; flex:1; justify-content:center; display: flex; align-items: center;"><input type="checkbox" class="preview-servico-trigger" id="areaInterna"> Interna</label>
+                            <label class="option-lbl" style="background:#f8f9fa; padding:8px 12px; border:1px solid #e5e7eb; border-radius:6px; flex:1; justify-content:center; display: flex; align-items: center;"><input type="checkbox" class="preview-servico-trigger" id="areaExterna"> Externa</label>
                         </div>
                         <input type="text" class="form-input preview-servico-trigger" id="areaDefinidaDetalhe" placeholder="Detalhes opcional. Ex: Apenas no refeitório">
                     </div>
@@ -214,24 +268,24 @@
                 
                 <div id="blocoChecksServicos">
                     <label class="title-label">Serviços Contratados (Marcação para sistema)</label>
-                    <div class="servicos-checkboxes-geral" style="margin-bottom: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb;">
-                        <label class="option-lbl"><input type="checkbox" class="servico-check preview-servico-trigger" value="Desinsetização"> Desinsetização</label>
-                        <label class="option-lbl"><input type="checkbox" class="servico-check preview-servico-trigger" value="Desratização"> Desratização</label>
-                        <label class="option-lbl"><input type="checkbox" class="servico-check preview-servico-trigger" value="Descupinização"> Descupinização</label>
-                        <label class="option-lbl" style="font-weight: bold; color: #004481;"><input type="checkbox" class="servico-check preview-servico-trigger" value="Limpeza dos reservatórios de água"> Limpeza dos reservatórios</label>
+                    <div class="servicos-checkboxes-geral" style="margin-bottom: 15px; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb; display: flex; flex-wrap: wrap; gap: 10px;">
+                        <label class="option-lbl" style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="servico-check preview-servico-trigger" value="Desinsetização"> Desinsetização</label>
+                        <label class="option-lbl" style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="servico-check preview-servico-trigger" value="Desratização"> Desratização</label>
+                        <label class="option-lbl" style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="servico-check preview-servico-trigger" value="Descupinização"> Descupinização</label>
+                        <label class="option-lbl" style="font-weight: bold; color: #004481; display:flex; align-items:center; gap:5px;"><input type="checkbox" class="servico-check preview-servico-trigger" value="Limpeza dos reservatórios de água"> Limpeza dos reservatórios</label>
                     </div>
 
                     <div class="checkbox-section" style="background-color: #f0f4f8; border-radius: 12px; padding: 15px; border: 1px dashed #004481; margin-bottom: 15px;">
                         <label class="title-label" style="font-size: 14px; margin-bottom: 10px;">Pragas Alvo</label>
                         <div class="checkbox-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px;">
-                            <label class="checkbox-item"><input type="checkbox" class="praga-check preview-servico-trigger" value="baratas"> Baratas</label>
-                            <label class="checkbox-item"><input type="checkbox" class="praga-check preview-servico-trigger" value="formigas"> Formigas</label>
-                            <label class="checkbox-item"><input type="checkbox" class="praga-check preview-servico-trigger" value="cupins"> Cupins</label>
-                            <label class="checkbox-item"><input type="checkbox" class="praga-check preview-servico-trigger" value="roedores"> Roedores</label>
-                            <label class="checkbox-item"><input type="checkbox" class="praga-check preview-servico-trigger" value="moscas"> Moscas</label>
-                            <label class="checkbox-item"><input type="checkbox" class="praga-check preview-servico-trigger" value="mosquitos"> Mosquitos</label>
-                            <label class="checkbox-item"><input type="checkbox" class="praga-check preview-servico-trigger" value="carrapatos"> Carrapatos</label>
-                            <label class="checkbox-item"><input type="checkbox" class="praga-check preview-servico-trigger" value="pulgas"> Pulgas</label>
+                            <label class="checkbox-item" style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="praga-check preview-servico-trigger" value="baratas"> Baratas</label>
+                            <label class="checkbox-item" style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="praga-check preview-servico-trigger" value="formigas"> Formigas</label>
+                            <label class="checkbox-item" style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="praga-check preview-servico-trigger" value="cupins"> Cupins</label>
+                            <label class="checkbox-item" style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="praga-check preview-servico-trigger" value="roedores"> Roedores</label>
+                            <label class="checkbox-item" style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="praga-check preview-servico-trigger" value="moscas"> Moscas</label>
+                            <label class="checkbox-item" style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="praga-check preview-servico-trigger" value="mosquitos"> Mosquitos</label>
+                            <label class="checkbox-item" style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="praga-check preview-servico-trigger" value="carrapatos"> Carrapatos</label>
+                            <label class="checkbox-item" style="display:flex; align-items:center; gap:5px;"><input type="checkbox" class="praga-check preview-servico-trigger" value="pulgas"> Pulgas</label>
                             <label class="checkbox-item item-outro" style="grid-column: 1 / -1; display: flex; flex-direction: column; align-items: flex-start;">
                                 <div style="display:flex; gap:8px; font-weight: bold;"><input type="checkbox" class="preview-servico-trigger" id="pragaOutros"> Outros</div>
                                 <input type="text" class="form-input input-outro preview-servico-trigger" id="pragasOutrosTexto" placeholder="Especifique a praga..." disabled style="background:#fff; margin-top:5px; width:100%;">
@@ -263,10 +317,10 @@
 
                 <div class="form-group" style="margin-bottom: 20px;">
                     <label class="title-label">Frequência de atendimento *</label>
-                    <div style="display:flex; gap:10px;">
+                    <div style="display:flex; gap:10px; flex-wrap: wrap;">
                         <input type="number" class="form-input" id="qtdVisitas" min="1" value="1" required style="width: 100px;">
                         <span style="display:flex; align-items:center; background:#f8f9fa; padding:0 15px; border:1px solid #e5e7eb; border-radius:8px; color:#6b7280; font-size:14px;" id="spanVisitaTexto">visita</span>
-                        <select class="form-input" id="periodoVisitas" required style="flex:1;">
+                        <select class="form-input" id="periodoVisitas" required style="flex:1; min-width: 200px;">
                             <option value="">Selecione a periodicidade...</option>
                             <option value="semanalmente">Semanalmente</option>
                             <option value="quinzenalmente">Quinzenalmente</option>
