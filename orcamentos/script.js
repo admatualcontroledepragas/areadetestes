@@ -1,6 +1,6 @@
 /* =======================================================
    ARQUIVO: script.js (ORÇAMENTOS)
-   Lógica de Interface, Integração com Google Apps Script e Quill.
+   Lógica de Interface, Integração com Google Apps Script e Quill
    ======================================================= */
 
 const URL_BACKEND = "https://script.google.com/macros/s/AKfycbzGW_NlHX3IXbsmcH_q1jEpm7PHiwuiKJlGDMKtuJU88aSgETrwA9wUJgrIDoO7GUVQ/exec"; 
