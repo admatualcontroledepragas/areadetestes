@@ -41,6 +41,17 @@ body {
     padding: 20px; 
 }
 
+/* =======================================================
+   ABAS DE NAVEGAÇÃO (Imóveis / Veículos)
+   ======================================================= */
+/* Cria o espaço para descolar as abas do cartão Total e centraliza no PC */
+.dash-tabs {
+    margin-bottom: 25px !important; 
+    max-width: 600px; 
+    margin-left: auto;
+    margin-right: auto;
+}
+
 /* 4. DASHBOARD E MÉTRICAS (Alinhamento em Linha) */
 .metrics-container {
     display: flex; 
@@ -75,7 +86,6 @@ body {
 }
 
 /* 6. FORMULÁRIOS E CARTÕES DE FILTRO */
-/* O .form-card perdeu o max-width restrito para ocupar toda a largura tal como a tabela */
 .form-card {
     padding: 40px;
     width: 100%;
@@ -87,11 +97,7 @@ body {
     padding: 30px;
     width: 100%; 
     max-width: none; 
-    margin: 0 0 25px 0 !important; /* Descola da tabela criando o espaçamento inferior */
-}
-
-.dash-tabs {
-    margin-bottom: 0 !important; /* Tira margem extra do card de filtros no PC */
+    margin: 0 0 25px 0 !important; 
 }
 
 /* 7. TABELAS E CENTRALIZAÇÃO DAS AÇÕES */
@@ -112,7 +118,7 @@ body {
 .styled-table td:last-child {
     text-align: center !important; 
     vertical-align: middle !important; 
-    width: 190px !important; /* Mais largo nos recibos por terem 4 botões de ação */
+    width: 190px !important; 
     min-width: 170px !important;
 }
 
