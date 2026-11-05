@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema de Recibos</title>
+    <title>Sistema de Recibos - Atual Saúde Ambiental</title>
     
-    <!-- Padronização: Substituição do FontAwesome pelo Material Icons e Fonte Inter -->
+    <!-- Padronização: Fontes Inter e Material Icons Exclusivo -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     
@@ -24,6 +24,7 @@
 </head>
 <body>
 
+<!-- LOADER GLOBAL (Apenas para gerar/apagar) -->
 <div id="loader" class="global-loader" style="display: none;">
     <div class="loader-box">
         <div class="spinner"></div>
@@ -40,7 +41,7 @@
             <a href="../index.html" class="btn-voltar-portal">
                 <span class="material-icons" style="font-size:16px;">arrow_back</span> Voltar
             </a>
-            <span style="font-size: 13px; color:#4b5563;">Olá, <strong id="displayUsuario" style="color:#111827;">...</strong></span>
+            <span style="font-size: 13px; color:#4b5563; margin-right: 15px;">Olá, <strong id="displayUsuario" style="color:#111827;">...</strong></span>
             <span class="btn-sair" onclick="fazerLogout()">Sair</span>
         </div>
     </div>
@@ -88,6 +89,7 @@
 
         <!-- Estrutura Padronizada de Ações -->
         <div class="action-bar">
+            <!-- Texto simplificado para "Histórico" -->
             <button class="btn-action btn-historico" onclick="mudarAba('historico')">
                 <span class="material-icons" style="font-size:18px;">manage_search</span> Histórico
             </button>
@@ -98,18 +100,23 @@
         
         <div class="table-container">
             <h3 style="margin-top:0; color:#111827; font-size:16px; margin-bottom:15px;" id="dash-tabela-titulo">Últimos Recibos</h3>
-            <table class="styled-table" id="tabela-ultimos-dashboard">
-                <thead>
-                    <tr>
-                        <th style="width: 30%;">Cliente</th>
-                        <th style="width: 20%;">Data</th>
-                        <th style="width: 20%;">Valor</th>
-                        <th style="width: 15%; text-align: center;">Código</th>
-                        <th style="width: 15%; text-align: center;">Ações</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+            <div style="overflow-x: auto;">
+                <table class="styled-table" id="tabela-ultimos-dashboard">
+                    <thead>
+                        <tr>
+                            <th style="width: 30%;">Cliente</th>
+                            <th style="width: 20%;">Data</th>
+                            <th style="width: 20%;">Valor</th>
+                            <th style="width: 15%; text-align: center;">Código</th>
+                            <th style="width: 15%; text-align: center;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Loader embutido -->
+                        <tr><td colspan="5" style="text-align: center; color: #6b7280; padding: 25px;">Carregando dados... <div class="spinner" style="width: 18px; height: 18px; border-width: 3px; display: inline-block; vertical-align: middle; margin-left: 10px; margin-bottom: 0;"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -118,43 +125,52 @@
          ========================================= -->
     <div id="view-historico" class="view-section content">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-            <h2 style="margin:0; font-size: 20px; color:#111827;">Histórico Completo</h2>
+            <!-- Adicionada classe .titulo-tela para mudar cor em modo escuro -->
+            <h2 class="titulo-tela" style="margin:0; font-size: 20px; transition: color 0.3s;">Histórico de Recibos</h2>
             <button class="btn-action btn-historico" onclick="mudarAba('dashboard')">
                 <span class="material-icons" style="font-size:18px;">arrow_back</span> Voltar
             </button>
         </div>
 
-        <div class="dash-tabs" style="border:none; margin-bottom: 0; justify-content: center; flex-wrap: wrap;">
-            <button id="btn-hist-imoveis" class="tab-btn active" onclick="mudarFiltroHistorico('imoveis')">Imóveis</button>
-            <button id="btn-hist-veiculos" class="tab-btn" onclick="mudarFiltroHistorico('veiculos')">Veículos</button>
+        <!-- Filtros transformados num card separado -->
+        <div class="filtros-card" style="padding: 10px; margin-bottom: 20px;">
+            <div class="dash-tabs" style="border:none; margin-bottom: 0; justify-content: center; flex-wrap: wrap; background: transparent;">
+                <button id="btn-hist-imoveis" class="tab-btn active" onclick="mudarFiltroHistorico('imoveis')">Imóveis</button>
+                <button id="btn-hist-veiculos" class="tab-btn" onclick="mudarFiltroHistorico('veiculos')">Veículos</button>
+            </div>
         </div>
 
-        <div class="table-container" style="margin-top: 15px;">
-            <table class="styled-table" id="tabela-historico">
-                <thead>
-                    <tr>
-                        <th style="width: 30%;">Cliente</th>
-                        <th style="width: 20%;">Data</th>
-                        <th style="width: 20%;">Valor</th>
-                        <th style="width: 15%; text-align: center;">Código</th>
-                        <th style="width: 15%; text-align: center;">Ações</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
-        
-        <div class="pagination-container">
-            <button class="btn-action btn-historico" id="btn-prev-page" onclick="mudarPagina(-1)">Anterior</button>
-            <span class="page-info" id="info-page">Página 1 de 1</span>
-            <button class="btn-action btn-historico" id="btn-next-page" onclick="mudarPagina(1)">Próxima</button>
+        <div class="table-container">
+            <div style="overflow-x: auto;">
+                <table class="styled-table" id="tabela-historico">
+                    <thead>
+                        <tr>
+                            <th style="width: 30%;">Cliente</th>
+                            <th style="width: 20%;">Data</th>
+                            <th style="width: 20%;">Valor</th>
+                            <th style="width: 15%; text-align: center;">Código</th>
+                            <th style="width: 15%; text-align: center;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Loader embutido -->
+                        <tr><td colspan="5" style="text-align: center; color: #6b7280; padding: 25px;">Carregando dados... <div class="spinner" style="width: 18px; height: 18px; border-width: 3px; display: inline-block; vertical-align: middle; margin-left: 10px; margin-bottom: 0;"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="pagination-container">
+                <button class="btn-action btn-historico" id="btn-prev-page" onclick="mudarPagina(-1)">Anterior</button>
+                <span class="page-info" id="info-page">Página 1 de 1</span>
+                <button class="btn-action btn-historico" id="btn-next-page" onclick="mudarPagina(1)">Próxima</button>
+            </div>
         </div>
     </div>
 
     <!-- FORMULÁRIO 1: GERAL (IMÓVEIS) -->
     <div id="view-form" class="view-section content">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-            <h2 style="margin:0; font-size: 20px; color:#111827;">Preenchimento</h2>
+        <!-- Título "Preenchimento" removido, mantendo botão voltar -->
+        <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom: 20px;">
             <button class="btn-action btn-historico" onclick="mudarAba('dashboard')">
                 <span class="material-icons" style="font-size:18px;">arrow_back</span> Voltar
             </button>
@@ -224,7 +240,7 @@
 
                 <div class="form-actions">
                     <button type="button" class="btn-cancel" onclick="mudarAba('dashboard')">Cancelar</button>
-                    <button type="submit" id="btnSubmit" class="btn-action btn-novo">Salvar e Gerar Recibo</button>
+                    <button type="submit" id="btnSubmit" class="btn-action btn-novo"><span class="material-icons" style="font-size: 18px;">receipt_long</span> Salvar e Gerar Recibo</button>
                 </div>
             </form>
         </div>
@@ -232,8 +248,8 @@
 
     <!-- FORMULÁRIO 2: VEÍCULOS -->
     <div id="view-form-veiculo" class="view-section content">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-            <h2 style="margin:0; font-size: 20px; color:#111827;">Preenchimento</h2>
+        <!-- Título "Preenchimento" removido -->
+        <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom: 20px;">
             <button class="btn-action btn-historico" onclick="mudarAba('dashboard')">
                 <span class="material-icons" style="font-size:18px;">arrow_back</span> Voltar
             </button>
@@ -325,7 +341,7 @@
 
                 <div class="form-actions">
                     <button type="button" class="btn-cancel" onclick="mudarAba('dashboard')">Cancelar</button>
-                    <button type="submit" id="btnSubmitVeiculo" class="btn-action btn-novo" style="background-color: #0ea5e9;">Salvar Recibo de Veículo</button>
+                    <button type="submit" id="btnSubmitVeiculo" class="btn-action btn-novo" style="background-color: #0ea5e9;"><span class="material-icons" style="font-size: 18px;">directions_car</span> Salvar Recibo Veículo</button>
                 </div>
             </form>
         </div>
