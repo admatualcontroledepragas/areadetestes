@@ -38,7 +38,7 @@ body {
 .content {
     max-width: 1200px !important;
     margin: 0 auto;
-    padding: 20px; /* Reduzido de 40px para 20px para não empurrar muito para baixo */
+    padding: 20px; 
 }
 
 /* 4. DASHBOARD E MÉTRICAS (Alinhamento em Linha) */
@@ -74,16 +74,30 @@ body {
     min-width: 180px; 
 }
 
-/* 6. FORMULÁRIOS E CARTÕES */
+/* 6. FORMULÁRIOS E CARTÕES DE FILTRO */
+/* O .form-card perdeu o max-width restrito para ocupar toda a largura tal como a tabela */
 .form-card {
     padding: 40px;
-    max-width: 900px;
+    width: 100%;
+    max-width: none;
     margin: 0 auto;
+}
+
+.filtros-card {
+    padding: 30px;
+    width: 100%; 
+    max-width: none; 
+    margin: 0 0 25px 0 !important; /* Descola da tabela criando o espaçamento inferior */
+}
+
+.dash-tabs {
+    margin-bottom: 0 !important; /* Tira margem extra do card de filtros no PC */
 }
 
 /* 7. TABELAS E CENTRALIZAÇÃO DAS AÇÕES */
 .table-container {
     padding: 25px;
+    width: 100%;
 }
 
 .styled-table tbody tr {
@@ -93,12 +107,12 @@ body {
     background-color: #f8fafc; 
 }
 
-/* Centraliza a última célula (Ações) e garante espaço para os 4 botões */
+/* Centraliza a última célula (Ações) e garante espaço para os botões */
 .styled-table th:last-child, 
 .styled-table td:last-child {
     text-align: center !important; 
     vertical-align: middle !important; 
-    width: 190px !important; 
+    width: 190px !important; /* Mais largo nos recibos por terem 4 botões de ação */
     min-width: 170px !important;
 }
 
@@ -112,4 +126,10 @@ body {
     height: 100% !important;
     gap: 10px !important;
     margin: 0 !important;
+}
+
+/* 8. MODAL DESKTOP */
+.modal-box {
+    padding: 40px !important;
+    max-width: 500px !important;
 }
