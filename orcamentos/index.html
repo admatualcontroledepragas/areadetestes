@@ -101,7 +101,8 @@
              ============================================== -->
         <div id="view-historico" class="view-section content hidden">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-                <h2 style="margin:0; font-size: 20px; color:#111827;">Histórico de Orçamentos</h2>
+                <!-- Classe titulo-tela adicionada para controlo de cor dinâmico via JS/CSS -->
+                <h2 class="titulo-tela" style="margin:0; font-size: 20px; transition: color 0.3s;">Histórico de Orçamentos</h2>
                 <button class="btn-action btn-historico" onclick="alternarTela('dashboard')">
                     <span class="material-icons" style="font-size:18px;">arrow_back</span> Voltar
                 </button>
@@ -163,8 +164,8 @@
              VISÃO 3: FORMULÁRIO DE NOVO ORÇAMENTO
              ============================================== -->
         <div id="view-formulario" class="view-section content hidden">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-                <h2 style="margin:0; font-size: 20px; color:#111827;">Preenchimento</h2>
+            <!-- Título 'Preenchimento' removido, mantendo o botão Voltar encostado à direita -->
+            <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom: 20px;">
                 <button class="btn-action btn-historico" onclick="alternarTela('dashboard')">
                     <span class="material-icons" style="font-size:18px;">arrow_back</span> Voltar
                 </button>
