@@ -5,21 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sistema de Orçamentos - Atual Saúde Ambiental</title>
     
-    <!-- Padronização: Fontes Inter e Material Icons Exclusivo -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     
-    <!-- Quill Editor para Detalhamento -->
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
 
-    <!-- Proteção de Sessão Unificada do Portal -->
     <script>
         if (sessionStorage.getItem("sessaoAtiva") !== "true") {
             window.location.href = "../index.html";
         }
     </script>
 
-    <!-- Ficheiros CSS Desmembrados -->
     <link rel="stylesheet" href="stylebase.css">
     <link rel="stylesheet" media="screen and (max-width: 1024px)" href="stylemobile.css">
     <link rel="stylesheet" media="screen and (min-width: 1025px)" href="styledesktop.css">
@@ -34,7 +30,7 @@
         </div>
     </div>
 
-    <!-- MODAL CUSTOMIZADO (Estrutura Unificada com Recibos) -->
+    <!-- MODAL CUSTOMIZADO -->
     <div id="modal-sistema" class="modal-overlay">
         <div class="modal-box">
             <p id="modal-texto" style="font-size: 16px; margin-bottom: 20px; color: #1f2937; line-height: 1.5;"></p>
@@ -71,7 +67,6 @@
             </div>
 
             <div class="action-bar">
-                <!-- Botão corrigido para apenas "Histórico" -->
                 <button class="btn-action btn-historico" onclick="alternarTela('historico')">
                     <span class="material-icons" style="font-size:18px;">manage_search</span> Histórico
                 </button>
@@ -94,7 +89,7 @@
                             </tr>
                         </thead>
                         <tbody id="tabela-dashboard">
-                            <tr><td colspan="5" style="text-align: center; color: #6b7280;">Carregando dados...</td></tr>
+                            <tr><td colspan="5" style="text-align: center; color: #6b7280; padding: 25px;">Carregando dados... <div class="spinner" style="width: 18px; height: 18px; border-width: 3px; display: inline-block; vertical-align: middle; margin-left: 10px; margin-bottom: 0;"></div></td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -112,7 +107,6 @@
                 </button>
             </div>
 
-            <!-- CONTAINER DE FILTROS MOVIDO PARA FORA DA TABELA -->
             <div class="filtros-card">
                 <div class="form-grid" style="align-items: end;">
                     <div class="form-group">
@@ -151,7 +145,7 @@
                             </tr>
                         </thead>
                         <tbody id="tabela-historico">
-                            <tr><td colspan="5" style="text-align: center; color: #6b7280;">Carregando dados...</td></tr>
+                            <tr><td colspan="5" style="text-align: center; color: #6b7280; padding: 25px;">Carregando dados... <div class="spinner" style="width: 18px; height: 18px; border-width: 3px; display: inline-block; vertical-align: middle; margin-left: 10px; margin-bottom: 0;"></div></td></tr>
                         </tbody>
                     </table>
                 </div>
