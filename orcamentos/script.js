@@ -12,14 +12,45 @@ let paginaAtual = 1;
 const itensPorPagina = 10;
 let filtroAtual = { cliente: '', codigo: '', dataInicio: '', dataFim: '' };
 
-// Template de loading para usar dentro das tabelas
+// Template de loading para usar dentro das tabelas (Carregando dados com spinner)
 const loaderHTML = '<tr><td colspan="5" style="text-align: center; color: #6b7280; padding: 25px;">Carregando dados... <div class="spinner" style="width: 18px; height: 18px; border-width: 3px; display: inline-block; vertical-align: middle; margin-left: 10px; margin-bottom: 0;"></div></td></tr>';
 
 window.addEventListener('DOMContentLoaded', () => {
     configurarDataAtual();
     inicializarQuill();
     carregarDashboard(); 
+    
+    // Inicia a verificação de cor de fundo para o modo escuro
+    verificarTemaFundo();
+    const observer = new MutationObserver(verificarTemaFundo);
+    observer.observe(document.body, { attributes: true, attributeFilter: ['style', 'class'] });
 });
+
+// ==========================================
+// DETEÇÃO DE TEMA (CLARO/ESCURO)
+// ==========================================
+function verificarTemaFundo() {
+    // Lê a cor computada do body
+    const bodyStyle = window.getComputedStyle(document.body);
+    let bg = bodyStyle.backgroundColor;
+    
+    // Extrai os valores RGB
+    let rgb = bg.match(/\d+/g);
+    if (rgb && rgb.length >= 3) {
+        let r = parseInt(rgb[0]), g = parseInt(rgb[1]), b = parseInt(rgb[2]);
+        // Fórmula padrão de luminância (YIQ) para perceber se a cor é escura ou clara
+        let luminosidade = (r * 299 + g * 587 + b * 114) / 1000;
+        
+        // Seleciona os títulos que precisam ficar brancos no modo escuro
+        const titulos = document.querySelectorAll('.titulo-tela, .form-header h2, .form-header p');
+        
+        if (luminosidade < 128 && bg !== 'rgba(0, 0, 0, 0)') { // Se for menor que 128, é escuro
+            titulos.forEach(t => t.classList.add('tema-escuro-texto'));
+        } else { // Se for claro ou transparente
+            titulos.forEach(t => t.classList.remove('tema-escuro-texto'));
+        }
+    }
+}
 
 // ==========================================
 // LOADER GLOBAL (Apenas para gerar/apagar)
@@ -191,8 +222,10 @@ function criarLinhaTabela(orcamento) {
     // Converte o link de visualização (Drive) num link de Exportação Direta de PDF
     let linkDownload = orcamento.urlPdf ? orcamento.urlPdf.replace(/\/view.*$/, "/export?format=pdf") : '#';
 
+    // A classe .td-cliente aplica o truncamento (os ...) 
+    // O atributo title adiciona a "caixinha flutuante" com o texto completo
     tr.innerHTML = `
-        <td><strong>${orcamento.cliente}</strong></td>
+        <td class="td-cliente" title="${orcamento.cliente}"><strong>${orcamento.cliente}</strong></td>
         <td>${orcamento.dataEmissao}</td>
         <td>${orcamento.valor}</td>
         <td style="text-align: center; color:#1f2937;">${orcamento.codigo}</td>
