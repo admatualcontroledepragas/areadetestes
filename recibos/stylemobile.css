@@ -32,7 +32,7 @@ body {
     justify-content: center; 
 }
 
-/* 2. ABAS E AÇÕES */
+/* 2. ABAS, FILTROS E AÇÕES */
 .dash-tabs {
     flex-wrap: wrap;
     justify-content: center;
@@ -42,6 +42,9 @@ body {
     flex: 1 1 auto;
     font-size: 13px;
     padding: 10px;
+}
+.filtros-card {
+    padding: 15px;
 }
 
 .action-bar {
@@ -57,7 +60,7 @@ body {
 
 /* 3. FORMULÁRIOS */
 .form-grid { 
-    grid-template-columns: 1fr; 
+    grid-template-columns: 1fr !important; 
     gap: 10px; 
 }
 .form-card { 
@@ -179,4 +182,10 @@ body {
 .modal-overlay { 
     padding-top: 40px; 
     padding-bottom: 40px; 
+}
+.modal-actions {
+    flex-direction: column;
+}
+.modal-actions button {
+    width: 100%;
 }
