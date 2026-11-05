@@ -1,94 +1,153 @@
-// =========================================================================
-  // URL DO SEU WEB APP
-  const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwyHKCvctCJ3ZbP47Y9lohbRp52p3U9D8obCsFoumqsDNj64dShvBC3JA-aJbsrGw4ApQ/exec";
-// =========================================================================
-  
-  let usuarioLogadoNome = "";
-  let tipoServicoAtual = "Imovel"; 
-  let paginaAtual = 1;
-  let modoEdicao = false;
-  let codigoEdicao = null;
-  
-  let cacheHistorico = []; 
-  let cacheDashboard = []; 
-  let cacheClientes = []; 
-  let codigoParaExcluirTemp = null; 
- 
-  // Dispara o carregamento dos dados iniciais puxando o nome da sessão global
-  window.onload = function() {
-      usuarioLogadoNome = sessionStorage.getItem("nomeUsuario") || "Usuário";
-      document.getElementById('displayUsuario').innerText = usuarioLogadoNome;
-      carregarColaboradores();
-      carregarDashboard();
-  };
+/* =======================================================
+   ARQUIVO: script.js (RELATÓRIOS)
+   Lógica de Interface, Tabelas, Histórico e Integração
+   ======================================================= */
 
-  // --- UI AUXILIARES ---
-  let toastTimeout; 
-  function showToast(mensagem, tipo = 'success') {
-    const t = document.getElementById("toast");
-    if (toastTimeout) clearTimeout(toastTimeout);
-    t.className = "show"; 
-    
-    if (tipo === 'error') {
-        t.style.backgroundColor = "#ef4444";
-    } else {
-        t.style.backgroundColor = "#10b981";
-    }
-    
-    t.innerText = mensagem;
-    toastTimeout = setTimeout(function(){ t.className = t.className.replace("show", "").trim(); }, 3000);
-  }
- 
-  function toggleLoading(btnId, isLoading, textDefault) {
-    const btn = document.getElementById(btnId);
-    if(!btn) return;
-    if (isLoading) {
-      btn.disabled = true;
-      btn.innerHTML = '<div class="spinner"></div> Processando...';
-    } else {
-      btn.disabled = false;
-      btn.innerHTML = textDefault;
-    }
-  }
+const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwyHKCvctCJ3ZbP47Y9lohbRp52p3U9D8obCsFoumqsDNj64dShvBC3JA-aJbsrGw4ApQ/exec";
   
-  function mostrarAlerta(titulo, mensagem) {
-    document.getElementById('titulo-aviso').innerText = titulo;
-    document.getElementById('mensagem-aviso').innerText = mensagem;
-    document.getElementById('modal-aviso').style.display = 'flex';
-  }
- 
-  // --- LOGOUT UNIFICADO ---
-  function fazerLogout() {
-    sessionStorage.clear();
-    window.location.href = "../index.html";
-  }
- 
-  // --- DASHBOARD ---
-  function mudarAbaDashboard(tipo) {
+let usuarioLogadoNome = "";
+let tipoServicoAtual = "Imovel"; 
+let paginaAtual = 1;
+let modoEdicao = false;
+let codigoEdicao = null;
+
+let cacheHistorico = []; 
+let cacheDashboard = []; 
+let cacheClientes = []; 
+let codigoParaExcluirTemp = null; 
+
+// Template de loading para usar dentro das tabelas
+const loaderHTML = '<tr><td colspan="7" style="text-align: center; color: #6b7280; padding: 25px;">A carregar dados... <div class="spinner" style="width: 18px; height: 18px; border-width: 3px; display: inline-block; vertical-align: middle; margin-left: 10px; margin-bottom: 0;"></div></td></tr>';
+
+window.onload = function() {
+    usuarioLogadoNome = sessionStorage.getItem("nomeUsuario") || "Usuário";
+    const display = document.getElementById('displayUsuario');
+    if(display) display.innerText = usuarioLogadoNome;
+    
+    carregarColaboradores();
+    carregarDashboard();
+    
+    verificarTemaFundo();
+    const observer = new MutationObserver(verificarTemaFundo);
+    observer.observe(document.body, { attributes: true, attributeFilter: ['style', 'class'] });
+};
+
+// ==========================================
+// DETEÇÃO DE TEMA (CLARO/ESCURO) NO IFRAME
+// ==========================================
+function verificarTemaFundo() {
+    const titulos = document.querySelectorAll('.titulo-tela, .form-header h2, .form-header p, .modal-box h3, .modal-box p');
+
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        titulos.forEach(t => t.classList.add('tema-escuro-texto'));
+    }
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+        if (event.matches) titulos.forEach(t => t.classList.add('tema-escuro-texto'));
+        else titulos.forEach(t => t.classList.remove('tema-escuro-texto'));
+    });
+
+    window.addEventListener('message', function(event) {
+        if (event.data === 'temaEscuro') titulos.forEach(t => t.classList.add('tema-escuro-texto'));
+        else if (event.data === 'temaClaro') titulos.forEach(t => t.classList.remove('tema-escuro-texto'));
+    });
+    
+    const bodyStyle = window.getComputedStyle(document.body);
+    let bg = bodyStyle.backgroundColor;
+    let rgb = bg.match(/\d+/g);
+    if (rgb && rgb.length >= 3) {
+        let r = parseInt(rgb[0]), g = parseInt(rgb[1]), b = parseInt(rgb[2]);
+        let luminosidade = (r * 299 + g * 587 + b * 114) / 1000;
+        if (luminosidade < 128 && bg !== 'rgba(0, 0, 0, 0)') {
+            titulos.forEach(t => t.classList.add('tema-escuro-texto'));
+        } else if (bg !== 'rgba(0, 0, 0, 0)') {
+            titulos.forEach(t => t.classList.remove('tema-escuro-texto'));
+        }
+    }
+}
+
+// ==========================================
+// SISTEMA DE ALERTAS E MODAIS UNIFICADOS
+// ==========================================
+let toastTimeout; 
+function showToast(mensagem, tipo = 'success') {
+  const t = document.getElementById("toast");
+  if (toastTimeout) clearTimeout(toastTimeout);
+  t.className = "show"; 
+  t.style.backgroundColor = (tipo === 'error') ? "#ef4444" : "#10b981";
+  t.innerText = mensagem;
+  toastTimeout = setTimeout(function(){ t.className = t.className.replace("show", "").trim(); }, 3000);
+}
+
+function mostrarModal(mensagem, tipo = 'alerta', callbackConfirmacao = null) {
+    const modal = document.getElementById('modal-sistema');
+    const texto = document.getElementById('modal-texto');
+    const botoes = document.getElementById('modal-botoes');
+    
+    texto.innerText = mensagem;
+    botoes.innerHTML = ''; 
+    
+    if (tipo === 'alerta') {
+        const btnOk = document.createElement('button');
+        btnOk.className = 'btn-action btn-novo';
+        btnOk.style.width = '100%';
+        btnOk.innerText = 'OK';
+        btnOk.onclick = () => { modal.style.display = 'none'; if (callbackConfirmacao) callbackConfirmacao(); };
+        botoes.appendChild(btnOk);
+    } 
+    else if (tipo === 'confirmacao') {
+        const btnCancelar = document.createElement('button');
+        btnCancelar.className = 'btn-cancel';
+        btnCancelar.innerText = 'Cancelar';
+        btnCancelar.onclick = () => { modal.style.display = 'none'; };
+        
+        const btnConfirmar = document.createElement('button');
+        btnConfirmar.className = 'btn-danger';
+        btnConfirmar.innerText = 'Sim, Excluir';
+        btnConfirmar.onclick = () => { modal.style.display = 'none'; if (callbackConfirmacao) callbackConfirmacao(); };
+        
+        botoes.appendChild(btnCancelar);
+        botoes.appendChild(btnConfirmar);
+    }
+    modal.style.display = 'flex';
+}
+
+function fazerLogout() {
+  sessionStorage.clear();
+  window.location.href = "../index.html";
+}
+
+// ==========================================
+// DASHBOARD
+// ==========================================
+function mudarAbaDashboard(tipo) {
    tipoServicoAtual = tipo;
    
-   // 1. Atualiza o aspeto dos botões (qual está selecionado)
    document.getElementById('tabImovel').className = tipo === 'Imovel' ? 'tab-btn active' : 'tab-btn';
    document.getElementById('tabVeiculo').className = tipo === 'Veiculo' ? 'tab-btn active' : 'tab-btn';
    
-   // 2. Atualiza o texto do Total
    document.getElementById('lblTotal').innerText = tipo === 'Imovel' ? 'Total de Imóveis' : 'Total de Veículos';
    
-   if(document.getElementById('tituloHistorico')) {
-       document.getElementById('tituloHistorico').innerText = (tipo === 'Imovel' ? 'Imóveis' : 'Veículos');
+   // Ajusta dinamicamente o título da segunda coluna (Endereço / Placa)
+   const thRecentes = document.querySelector('#view-dashboard th:nth-child(2)');
+   if(thRecentes) thRecentes.innerText = (tipo === 'Imovel' ? 'Endereço' : 'Placa');
+
+   // Ajusta a classe CSS para o telemóvel saber qual rótulo aplicar via CSS
+   const tabelaRecentesEl = document.querySelector('#view-dashboard .styled-table');
+   if(tabelaRecentesEl) {
+       tabelaRecentesEl.classList.remove('modo-imovel', 'modo-veiculo');
+       tabelaRecentesEl.classList.add(tipo === 'Imovel' ? 'modo-imovel' : 'modo-veiculo');
    }
    
-   // 3. Força a limpeza visual Imediata antes de chamar o servidor
-   document.getElementById('tabelaRecentes').innerHTML = "<tr><td colspan='7' style='text-align:center; padding:20px; color:#6b7280;'>Atualizando dados...</td></tr>";
+   document.getElementById('tabelaRecentes').innerHTML = loaderHTML;
    document.getElementById('dashTotal').innerText = "...";
    
-   // 4. Puxa os dados corretos da aba atual
    carregarDashboard();
- }
- 
-  function carregarDashboard() {
+}
+
+function carregarDashboard() {
    const tbody = document.getElementById('tabelaRecentes');
-   tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; padding:20px; color:#6b7280;'>Atualizando...</td></tr>"; 
+   tbody.innerHTML = loaderHTML; 
    
    fetch(URL_SCRIPT, { method: "POST", body: JSON.stringify({ acao: "dashboard", tipo: tipoServicoAtual }) })
    .then(res => res.json())
@@ -96,11 +155,10 @@
      if(dados.status === "sucesso") {
        document.getElementById('dashTotal').innerText = dados.total;
        tbody.innerHTML = "";
-       
        cacheDashboard = dados.ultimos;
        
        if (dados.ultimos.length === 0) { 
-         tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; color:#999; padding:20px;'>Nenhum registro recente.</td></tr>"; 
+         tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; color:#999; padding:25px;'>Nenhum registro recente.</td></tr>"; 
        } else {
          dados.ultimos.forEach((item, index) => {
              const tr = document.createElement('tr');
@@ -108,9 +166,7 @@
              let dataFormatada = item.data;
              if(dataFormatada) {
                  let d = new Date(dataFormatada);
-                 if(!isNaN(d.getTime())) {
-                     dataFormatada = d.toLocaleDateString('pt-BR', {timeZone: 'UTC'});
-                 }
+                 if(!isNaN(d.getTime())) dataFormatada = d.toLocaleDateString('pt-BR', {timeZone: 'UTC'});
              }
 
              let botoesHtml = "";
@@ -118,23 +174,23 @@
              if (item.linkCert && String(item.linkCert).startsWith("http")) botoesHtml += `<a href="${item.linkCert}" target="_blank" class="btn-doc bg-certificado">CERTIFICADO</a>`;
              if (botoesHtml === "") botoesHtml = "<span class='no-file'>--</span>";
              
-             const codigoVisual = item.codigo ? item.codigo : "--";
              const safeCodigo = item.codigo ? item.codigo : "";
+             const codigoVisual = item.codigo ? item.codigo : "--";
 
              let botoesAcao = `
-               <button class="icon-btn btn-table-action btn-edit" onclick="prepararEdicao(${index}, 'dashboard')" title="Editar">
-                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+               <button class="icon-btn icon-btn.edit btn-edit" onclick="prepararEdicao(${index}, 'dashboard')" title="Editar">
+                   <span class="material-icons" style="font-size:18px;">edit</span>
                </button>
-               <button class="icon-btn btn-table-action btn-delete" onclick="confirmarExclusao('${safeCodigo}')" title="Excluir">
-                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+               <button class="icon-btn icon-btn.delete btn-delete" onclick="confirmarExclusao('${safeCodigo}')" title="Excluir">
+                   <span class="material-icons" style="font-size:18px;">delete</span>
                </button>
              `;
              
              tr.innerHTML = `
-                <td><strong>${item.cliente}</strong></td>
-                <td>${item.identificacao}</td>
-                <td>${item.servico}</td>
-                <td>${dataFormatada}</td>
+                <td class="td-cliente" title="${item.cliente || ''}"><strong>${item.cliente}</strong></td>
+                <td class="td-endereco" title="${item.identificacao || ''}">${item.identificacao}</td>
+                <td class="td-servico" title="${item.servico || ''}">${item.servico}</td>
+                <td style="white-space: nowrap;">${dataFormatada}</td>
                 <td style="text-align: center; color: #1f2937;">${codigoVisual}</td>
                 <td style="text-align:center;">
                     <div style="display:flex; gap:5px; justify-content:center;">${botoesHtml}</div>
@@ -145,20 +201,30 @@
          });
        }
      } else {
-       tbody.innerHTML = `<tr><td colspan='7' style='color:red'>Erro: ${dados.mensagem}</td></tr>`; 
+       tbody.innerHTML = `<tr><td colspan='7' style='color:red; text-align:center; padding:25px;'>Erro: ${dados.mensagem}</td></tr>`; 
      }
    })
-   .catch(err => { tbody.innerHTML = "<tr><td colspan='7' style='color:red'>Erro de conexão.</td></tr>"; });
- }
+   .catch(() => { tbody.innerHTML = "<tr><td colspan='7' style='color:red; text-align:center; padding:25px;'>Erro de conexão.</td></tr>"; });
+}
  
-// --- HISTÓRICO ---
- function abrirHistorico() {
-   document.getElementById('view-dashboard').style.display = 'none';
-   document.getElementById('view-historico').style.display = 'block';
+// ==========================================
+// HISTÓRICO
+// ==========================================
+function abrirHistorico() {
+   document.getElementById('view-dashboard').classList.remove('active');
+   document.getElementById('view-historico').classList.add('active');
    
    document.getElementById('tabHistImovel').className = tipoServicoAtual === 'Imovel' ? 'tab-btn active' : 'tab-btn';
    document.getElementById('tabHistVeiculo').className = tipoServicoAtual === 'Veiculo' ? 'tab-btn active' : 'tab-btn';
-   document.getElementById('thIdentificacao').innerText = (tipoServicoAtual === 'Imovel' ? 'Endereço' : 'Placa');
+   
+   const thHist = document.getElementById('thIdentificacao');
+   if(thHist) thHist.innerText = (tipoServicoAtual === 'Imovel' ? 'Endereço' : 'Placa');
+   
+   const tabelaHistEl = document.querySelector('#view-historico .styled-table');
+   if(tabelaHistEl) {
+       tabelaHistEl.classList.remove('modo-imovel', 'modo-veiculo');
+       tabelaHistEl.classList.add(tipoServicoAtual === 'Imovel' ? 'modo-imovel' : 'modo-veiculo');
+   }
    
    if (tipoServicoAtual === 'Veiculo') {
        document.getElementById('containerFiltroPlaca').style.display = 'block';
@@ -171,19 +237,27 @@
    paginaAtual = 1;
    limparFiltros(false); 
    carregarHistorico();
- }
+}
  
- function fecharHistorico() {
-   document.getElementById('view-historico').style.display = 'none';
-   document.getElementById('view-dashboard').style.display = 'block';
-   mudarAbaDashboard(tipoServicoAtual); // Sincroniza a aba principal
- }
+function fecharHistorico() {
+   document.getElementById('view-historico').classList.remove('active');
+   document.getElementById('view-dashboard').classList.add('active');
+   mudarAbaDashboard(tipoServicoAtual); 
+}
 
- function mudarAbaHistorico(tipo) {
+function mudarAbaHistorico(tipo) {
    tipoServicoAtual = tipo;
    document.getElementById('tabHistImovel').className = tipo === 'Imovel' ? 'tab-btn active' : 'tab-btn';
    document.getElementById('tabHistVeiculo').className = tipo === 'Veiculo' ? 'tab-btn active' : 'tab-btn';
-   document.getElementById('thIdentificacao').innerText = (tipo === 'Imovel' ? 'Endereço' : 'Placa');
+   
+   const thHist = document.getElementById('thIdentificacao');
+   if(thHist) thHist.innerText = (tipo === 'Imovel' ? 'Endereço' : 'Placa');
+   
+   const tabelaHistEl = document.querySelector('#view-historico .styled-table');
+   if(tabelaHistEl) {
+       tabelaHistEl.classList.remove('modo-imovel', 'modo-veiculo');
+       tabelaHistEl.classList.add(tipo === 'Imovel' ? 'modo-imovel' : 'modo-veiculo');
+   }
    
    if (tipo === 'Veiculo') {
        document.getElementById('containerFiltroPlaca').style.display = 'block';
@@ -195,9 +269,9 @@
    paginaAtual = 1;
    limparFiltros(false);
    carregarHistorico();
- }
+}
  
- function limparFiltros(recarregar = true) {
+function limparFiltros(recarregar = true) {
    document.getElementById('filtroCliente').value = "";
    document.getElementById('filtroPlaca').value = "";
    document.getElementById('filtroEndereco').value = "";
@@ -205,16 +279,16 @@
    document.getElementById('filtroDataInicio').value = "";
    document.getElementById('filtroDataFim').value = "";
    if(recarregar) { paginaAtual=1; carregarHistorico(); }
- }
+}
  
- function mudarPagina(direcao) {
+function mudarPagina(direcao) {
    paginaAtual += direcao;
    carregarHistorico();
- }
+}
  
- function carregarHistorico() {
+function carregarHistorico() {
    const tbody = document.getElementById('tabelaHistorico');
-   tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; padding:30px; color:#666;'>Carregando histórico...</td></tr>";
+   tbody.innerHTML = loaderHTML;
    
    const payload = {
      acao: "historico", tipo: tipoServicoAtual, pagina: paginaAtual,
@@ -234,7 +308,7 @@
        cacheHistorico = dados.dados; 
        
        if (dados.dados.length === 0) {
-          tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; padding:30px; color:#999;'>Nenhum registro encontrado.</td></tr>";
+          tbody.innerHTML = "<tr><td colspan='7' style='text-align:center; padding:25px; color:#999;'>Nenhum registro encontrado.</td></tr>";
        } else {
           dados.dados.forEach((r, index) => {
              const tr = document.createElement('tr');
@@ -254,19 +328,19 @@
              const codigoVisual = r.codigo ? r.codigo : "--";
              
              let botoesAcao = `
-               <button class="icon-btn btn-table-action btn-edit" onclick="prepararEdicao(${index}, 'historico')" title="Editar">
-                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+               <button class="icon-btn icon-btn.edit btn-edit" onclick="prepararEdicao(${index}, 'historico')" title="Editar">
+                   <span class="material-icons" style="font-size:18px;">edit</span>
                </button>
-               <button class="icon-btn btn-table-action btn-delete" onclick="confirmarExclusao('${safeCodigo}')" title="Excluir">
-                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+               <button class="icon-btn icon-btn.delete btn-delete" onclick="confirmarExclusao('${safeCodigo}')" title="Excluir">
+                   <span class="material-icons" style="font-size:18px;">delete</span>
                </button>
              `;
              
              tr.innerHTML = `
-                <td><strong>${r.cliente}</strong></td>
-                <td>${r.identificacao}</td>
-                <td>${dataFormatada}</td>
-                <td>${r.servico}</td>
+                <td class="td-cliente" title="${r.cliente || ''}"><strong>${r.cliente}</strong></td>
+                <td class="td-endereco" title="${r.identificacao || ''}">${r.identificacao}</td>
+                <td style="white-space: nowrap;">${dataFormatada}</td>
+                <td class="td-servico" title="${r.servico || ''}">${r.servico}</td>
                 <td style="text-align: center; color: #1f2937;">${codigoVisual}</td>
                 <td style="text-align:center;">
                     <div style="display:flex; gap:3px; justify-content:center;">${botoesDocs}</div>
@@ -280,32 +354,32 @@
        document.getElementById('btnAnt').disabled = (dados.paginaAtual <= 1);
        document.getElementById('btnProx').disabled = (dados.paginaAtual >= dados.totalPaginas);
      } else {
-       tbody.innerHTML = `<tr><td colspan='7' style='color:red'>Erro ao carregar.</td></tr>`; 
+       tbody.innerHTML = `<tr><td colspan='7' style='color:red; text-align:center; padding:25px;'>Erro ao carregar.</td></tr>`; 
      }
    })
-   .catch(err => { tbody.innerHTML = `<tr><td colspan='7' style='color:red'>Erro de conexão.</td></tr>`; });
- }
+   .catch(() => { tbody.innerHTML = `<tr><td colspan='7' style='color:red; text-align:center; padding:25px;'>Erro de conexão.</td></tr>`; });
+}
  
-  // --- EXCLUSÃO BLINDADA ---
-  function confirmarExclusao(codigo) {
+// ==========================================
+// EXCLUSÃO
+// ==========================================
+function confirmarExclusao(codigo) {
     if (!codigo || codigo === "undefined" || codigo === "") {
         showToast("Registro antigo sem código.", "error");
         return;
     }
     codigoParaExcluirTemp = codigo;
-    document.getElementById('modal-confirmacao').style.display = 'flex';
-  }
+    mostrarModal("Tem a certeza que deseja apagar definitivamente este registo?", "confirmacao", () => {
+        realizarExclusaoDefinitiva();
+    });
+}
  
-  function fecharModalConfirmacao() {
-    document.getElementById('modal-confirmacao').style.display = 'none';
-    codigoParaExcluirTemp = null;
-  }
- 
-  function realizarExclusaoDefinitiva() {
+function realizarExclusaoDefinitiva() {
     if(!codigoParaExcluirTemp) return;
     const codigoSeguro = codigoParaExcluirTemp;
-    fecharModalConfirmacao();
-    showToast("Processando exclusão...", "show");
+    codigoParaExcluirTemp = null;
+    
+    showToast("A apagar ficheiro...", "show");
  
     fetch(URL_SCRIPT, { 
         method: "POST", 
@@ -314,20 +388,22 @@
     .then(res => res.json())
     .then(ret => {
        if(ret.status === "sucesso") {
-         mostrarAlerta("✅ Sucesso!", "O registro e os arquivos foram excluídos permanentemente.");
+         mostrarModal("Registo apagado com sucesso!", "alerta");
          carregarDashboard();
-         if(document.getElementById('view-historico').style.display === 'block') { carregarHistorico(); }
+         if(document.getElementById('view-historico').classList.contains('active')) { carregarHistorico(); }
        } else {
-         mostrarAlerta("❌ Erro!", "Não foi possível excluir o registro.\nMotivo: " + ret.mensagem);
+         mostrarModal("Erro ao excluir: " + ret.mensagem, "alerta");
        }
     })
-    .catch(err => {
-        mostrarAlerta("Erro de Conexão", "Verifique sua internet e tente novamente.");
+    .catch(() => {
+        mostrarModal("Erro de ligação ao tentar apagar.", "alerta");
     });
-  }
+}
  
-// --- LÓGICA DE EDIÇÃO ---
-  function prepararEdicao(index, origem = 'historico') {
+// ==========================================
+// EDIÇÃO E REGISTO
+// ==========================================
+function prepararEdicao(index, origem = 'historico') {
     let lista = (origem === 'dashboard') ? cacheDashboard : cacheHistorico;
     const item = lista[index];
     if(!item) return;
@@ -335,11 +411,11 @@
     modoEdicao = true;
     codigoEdicao = item.codigo; 
 
-    document.getElementById('tituloFormulario').innerText = "Editando Registro";
+    document.getElementById('tituloFormulario').innerText = "Editando Registo";
     document.getElementById('modal-selecao').style.display = 'none';
-    document.getElementById('view-dashboard').style.display = 'none';
-    document.getElementById('view-historico').style.display = 'none';
-    document.getElementById('view-formulario').style.display = 'block';
+    document.getElementById('view-dashboard').classList.remove('active');
+    document.getElementById('view-historico').classList.remove('active');
+    document.getElementById('view-formulario').classList.add('active');
     
     if(document.getElementById('btnImportarCliente')) document.getElementById('btnImportarCliente').style.display = 'none';
 
@@ -401,17 +477,21 @@
     const listaNomes = item.colaboradores ? item.colaboradores.split(", ") : [];
     document.getElementById('texto-selecao').innerText = listaNomes.length + " selecionados";
     calcularValidade();
-  }
+}
  
-  // --- FORMULÁRIO E INJEÇÃO DO RASCUNHO ---
-  function abrirModalSelecao() { document.getElementById('modal-selecao').style.display = 'flex'; }
-  function handleInputPlaca(e) { if(tipoServicoAtual === 'Veiculo') { e.target.value = e.target.value.toUpperCase(); } }
+function abrirModalSelecao() { 
+    document.getElementById('modal-selecao').style.display = 'flex'; 
+}
+
+function handleInputPlaca(e) { 
+    if(tipoServicoAtual === 'Veiculo') { e.target.value = e.target.value.toUpperCase(); } 
+}
  
-  function iniciarRegistro(tipo) {
+function iniciarRegistro(tipo) {
     tipoServicoAtual = tipo;
     modoEdicao = false; codigoEdicao = null;
     document.getElementById('modal-selecao').style.display = 'none';
-    document.getElementById('tituloFormulario').innerText = `Novo Registro - ${tipo === 'Imovel' ? 'IMÓVEL' : 'VEÍCULO'}`;
+    document.getElementById('tituloFormulario').innerText = `Novo Registo - ${tipo === 'Imovel' ? 'IMÓVEL' : 'VEÍCULO'}`;
     const lblCampo2 = document.getElementById('lblCampo2');
     const inputCampo2 = document.getElementById('campo2');
     const btnImportar = document.getElementById('btnImportarCliente');
@@ -441,9 +521,6 @@
     const hoje = new Date();
     document.getElementById('campo5').value = hoje.toISOString().split('T')[0];
 
-    // ==========================================
-    // 🚀 RECUPERA O RASCUNHO AUTOMATICAMENTE
-    // ==========================================
     const rascunhoSalvo = localStorage.getItem('rascunho_' + tipo);
     if (rascunhoSalvo) {
         try {
@@ -461,49 +538,45 @@
                 document.getElementById('descReservatorio').style.display = 'block';
                 document.getElementById('descReservatorio').value = rascunho.descReservatorio;
             }
-            
-            showToast("Rascunho recuperado. Continue de onde parou!", "success");
-        } catch(e) {
-            console.error("Erro ao ler rascunho", e);
-        }
+            showToast("Rascunho recuperado com sucesso!", "success");
+        } catch(e) {}
     }
-    // ==========================================
 
-    document.getElementById('view-dashboard').style.display = 'none';
-    document.getElementById('view-historico').style.display = 'none'; 
-    document.getElementById('view-formulario').style.display = 'block';
+    document.getElementById('view-dashboard').classList.remove('active');
+    document.getElementById('view-historico').classList.remove('active'); 
+    document.getElementById('view-formulario').classList.add('active');
     window.scrollTo(0,0);
     calcularValidade(); 
-  }
+}
  
-  function fecharFormulario() {
-    limparRascunho(); // Limpa o rascunho porque o usuário cancelou de propósito
+function fecharFormulario() {
+    limparRascunho(); 
     
     document.getElementById('formulario').reset();
-    document.getElementById('view-formulario').style.display = 'none';
-    document.getElementById('view-historico').style.display = 'none';
-    document.getElementById('view-dashboard').style.display = 'block';
+    document.getElementById('view-formulario').classList.remove('active');
+    document.getElementById('view-historico').classList.remove('active');
+    document.getElementById('view-dashboard').classList.add('active');
     window.scrollTo(0, 0);
     
     modoEdicao = false; 
     codigoEdicao = null;
     
     mudarAbaDashboard(tipoServicoAtual);
-  }
+}
  
-  document.getElementById('campo9').addEventListener('change', function() {
+document.getElementById('campo9').addEventListener('change', function() {
     const descInput = document.getElementById('descReservatorio');
     if (tipoServicoAtual === 'Imovel' && this.value === 'Limpeza de Reservatórios') { 
         descInput.style.display = 'block'; descInput.required = true; descInput.focus(); 
     } else { 
         descInput.style.display = 'none'; descInput.required = false; descInput.value = ''; 
     }
-  });
+});
  
-  document.getElementById("formulario").addEventListener("submit", function (e) {
+document.getElementById("formulario").addEventListener("submit", function (e) {
     e.preventDefault();
     
-    document.getElementById('view-formulario').style.display = 'none';
+    document.getElementById('view-formulario').classList.remove('active');
     document.getElementById('modal-salvando').style.display = 'flex';
     
     let garantiaTexto = (document.getElementById('selectGarantia').value === 'Outro') 
@@ -538,57 +611,54 @@
         document.getElementById('modal-salvando').style.display = 'none';
 
         if(ret.status === "sucesso") { 
-           limparRascunho(); // Limpa o rascunho porque o registo foi salvo no servidor com sucesso!
-           showToast(modoEdicao ? "Registro atualizado!" : "Registro salvo!", "success");
+           limparRascunho(); 
+           showToast(modoEdicao ? "Registo atualizado!" : "Registo guardado com sucesso!", "success");
            fecharFormulario(); 
         } else { 
-           document.getElementById('view-formulario').style.display = 'block';
-           showToast("Erro: " + ret.mensagem, "error"); 
+           document.getElementById('view-formulario').classList.add('active');
+           mostrarModal("Erro: " + ret.mensagem, "alerta"); 
         }
     })
-    .catch(err => { 
+    .catch(() => { 
         document.getElementById('modal-salvando').style.display = 'none';
-        document.getElementById('view-formulario').style.display = 'block'; 
-        showToast("Erro ao enviar dados. Verifique a internet.", "error"); 
+        document.getElementById('view-formulario').classList.add('active'); 
+        mostrarModal("Erro de ligação ao tentar salvar.", "alerta"); 
     });
-  });
+});
  
-  // --- AUXILIARES ---
-  function carregarColaboradores() {
-    fetch(URL_SCRIPT, { 
-        method: "POST", 
-        body: JSON.stringify({ acao: "listarColaboradores" }) 
-    })
+// ==========================================
+// AUXILIARES E COLABORADORES
+// ==========================================
+function carregarColaboradores() {
+    fetch(URL_SCRIPT, { method: "POST", body: JSON.stringify({ acao: "listarColaboradores" }) })
     .then(res => res.json())
     .then(lista => {
         const divCheck = document.getElementById('checkboxes'); 
         divCheck.innerHTML = '';
-        
         if(Array.isArray(lista)){ 
             lista.forEach((nome, i) => criarOpcao(nome, nome, i)); 
             criarOpcao("Outro", "Outro (Digitar)", "outro", true); 
         }
     })
-    .catch(err => {
-        console.error("Erro ao carregar colaboradores:", err);
+    .catch(() => {
         const divCheck = document.getElementById('checkboxes');
         divCheck.innerHTML = '<label style="color:red; padding:10px;">Erro ao carregar lista.</label>';
     });
-  }
+}
   
-  const selectGarantia = document.getElementById('selectGarantia');
-  const inputManualGarantia = document.getElementById('campo6_manual');
-  const inputDataRealizacao = document.getElementById('campo5');
-  const inputDataValidade = document.getElementById('campo7');
+const selectGarantia = document.getElementById('selectGarantia');
+const inputManualGarantia = document.getElementById('campo6_manual');
+const inputDataRealizacao = document.getElementById('campo5');
+const inputDataValidade = document.getElementById('campo7');
   
-  selectGarantia.addEventListener('change', () => { 
+selectGarantia.addEventListener('change', () => { 
       inputManualGarantia.style.display = selectGarantia.value === 'Outro' ? 'block' : 'none'; 
       calcularValidade(); 
-  });
-  inputManualGarantia.addEventListener('input', calcularValidade);
-  inputDataRealizacao.addEventListener('change', calcularValidade);
+});
+inputManualGarantia.addEventListener('input', calcularValidade);
+inputDataRealizacao.addEventListener('change', calcularValidade);
   
-  function calcularValidade() {
+function calcularValidade() {
     let dias = selectGarantia.value === 'Outro' ? parseInt(inputManualGarantia.value) : parseInt(selectGarantia.value);
     const partesData = inputDataRealizacao.value.split('-'); 
     if(dias && partesData.length === 3) {
@@ -596,10 +666,10 @@
         d.setDate(d.getDate() + dias);
         inputDataValidade.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
-  }
+}
  
-  function toggleCheckboxes() { const div = document.getElementById('checkboxes'); div.style.display = div.style.display === 'block' ? 'none' : 'block'; }
-  function criarOpcao(val, txt, id, isOutro) {
+function toggleCheckboxes() { const div = document.getElementById('checkboxes'); div.style.display = div.style.display === 'block' ? 'none' : 'block'; }
+function criarOpcao(val, txt, id, isOutro) {
       const div = document.getElementById('checkboxes'); const lbl = document.createElement('label'); const chk = document.createElement('input');
       chk.type='checkbox'; chk.value=val; chk.name='colaboradores_check'; chk.id='c_'+id;
       chk.addEventListener('change', () => {
@@ -608,23 +678,23 @@
         document.getElementById('texto-selecao').innerText = q ? q + " selecionados" : "Selecione os colaboradores...";
       });
       lbl.appendChild(chk); lbl.appendChild(document.createTextNode(txt)); div.appendChild(lbl);
-  }
-  document.addEventListener('click', function(e) { const ms = document.querySelector('.multiselect'); if (!ms.contains(e.target)) document.getElementById('checkboxes').style.display = 'none'; });
+}
+document.addEventListener('click', function(e) { const ms = document.querySelector('.multiselect'); if (!ms.contains(e.target)) document.getElementById('checkboxes').style.display = 'none'; });
 
-  // === LÓGICA DE IMPORTAÇÃO DE CLIENTES ===
-  
-  function removerAcentos(texto) {
+// ==========================================
+// IMPORTAÇÃO DE CLIENTES
+// ==========================================
+function removerAcentos(texto) {
       if (!texto) return "";
       return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
-  }
+}
 
-  function abrirModalClientes() {
+function abrirModalClientes() {
       document.getElementById('modal-clientes').style.display = 'flex';
-      
       document.getElementById('buscaCliente').value = '';
       
       const divLista = document.getElementById('listaClientes');
-      divLista.innerHTML = '<div style="padding:20px; text-align:center; color:#666;">Carregando lista...</div>';
+      divLista.innerHTML = '<div style="padding:20px; text-align:center; color:#666;">A carregar...</div>';
       
       fetch(URL_SCRIPT, { method: "POST", body: JSON.stringify({ acao: "listarClientes" }) })
       .then(res => res.json())
@@ -633,31 +703,31 @@
               cacheClientes = ret.dados;
               renderizarListaClientes(cacheClientes.slice(0, 10));
           } else {
-              divLista.innerHTML = '<div style="padding:10px; color:red;">Erro ao carregar lista.</div>';
+              divLista.innerHTML = '<div style="padding:10px; color:red; text-align:center;">Erro ao carregar lista.</div>';
           }
       })
-      .catch(e => {
-          divLista.innerHTML = '<div style="padding:10px; color:red;">Erro de conexão.</div>';
+      .catch(() => {
+          divLista.innerHTML = '<div style="padding:10px; color:red; text-align:center;">Erro de conexão.</div>';
       });
-  }
+}
 
-  function renderizarListaClientes(lista) {
+function renderizarListaClientes(lista) {
       const divLista = document.getElementById('listaClientes');
       divLista.innerHTML = '';
       if(lista.length === 0) {
           divLista.innerHTML = '<div style="padding:20px; text-align:center;">Nenhum cliente encontrado.</div>';
           return;
       }
-      lista.forEach((c, index) => {
+      lista.forEach((c) => {
           const div = document.createElement('div');
           div.className = 'item-cliente';
           div.onclick = function() { selecionarCliente(c); };
-          div.innerHTML = `<strong>${c.nome}</strong><br><small style="color:#6b7280;">${c.endereco}</small>`;
+          div.innerHTML = `<strong>${c.nome}</strong><small>${c.endereco}</small>`;
           divLista.appendChild(div);
       });
-  }
+}
 
-  function filtrarListaClientes() {
+function filtrarListaClientes() {
       const termoDigitado = document.getElementById('buscaCliente').value;
       const termo = removerAcentos(termoDigitado.toLowerCase());
       
@@ -672,9 +742,9 @@
       });
       
       renderizarListaClientes(filtrados);
-  }
+}
 
-  function selecionarCliente(cliente) {
+function selecionarCliente(cliente) {
       document.getElementById('campo1').value = cliente.nome;
       document.getElementById('campo2').value = cliente.endereco;
       if(cliente.entrada) document.getElementById('campo3').value = cliente.entrada;
@@ -742,13 +812,12 @@
 
       calcularValidade();
       document.getElementById('modal-clientes').style.display = 'none';
-      showToast("Dados importados!", "success");
-  }
+      showToast("Dados importados com sucesso!", "success");
+}
 
-/* =======================================================
-   SISTEMA DE RASCUNHO AUTOMÁTICO (ANTI-PERDA DE DADOS)
-   ======================================================= */
-
+// ==========================================
+// RASCUNHO AUTOMÁTICO
+// ==========================================
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('formulario');
     if (form) {
@@ -758,9 +827,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function salvarRascunhoAutomatico() {
-    // PROTEÇÃO: Não salva rascunho se o utilizador estiver apenas a editar um registo antigo!
     if (modoEdicao) return; 
-    
     if (!tipoServicoAtual) return; 
 
     const rascunho = {
