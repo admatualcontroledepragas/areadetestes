@@ -26,6 +26,9 @@ body { background-color: var(--bg-body); color: var(--cor-texto); margin: 0; pad
 .view-section.active { display: block; animation: fadein 0.3s; }
 @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
 
+/* Título Dinâmico (Fundo Escuro) */
+.tema-escuro-texto { color: #ffffff !important; }
+
 /* ================================
    NAVBAR GERAL
    ================================ */
@@ -65,13 +68,22 @@ body { background-color: var(--bg-body); color: var(--cor-texto); margin: 0; pad
 /* ================================
    TABELAS E FILTROS (Dashboard e Histórico)
    ================================ */
-.table-container { background: rgba(255, 255, 255, 0.85); border-radius: 12px; padding: 15px; overflow-x: auto; border: 1px solid var(--cor-borda); }
+.table-container { background: rgba(255, 255, 255, 0.85); border-radius: 12px; padding: 15px; overflow-x: auto; border: 1px solid var(--cor-borda); width: 100%; }
 .table-container h3 { margin-top: 0; color: var(--cor-texto); font-size: 16px; margin-bottom: 15px; }
 .styled-table { width: 100%; border-collapse: collapse; min-width: 700px; }
 .styled-table th { text-align: left; padding: 14px; border-bottom: 2px solid var(--cor-borda); color: var(--cor-texto-secundario); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; white-space: nowrap; }
 .styled-table td { padding: 14px; border-bottom: 1px solid var(--cor-borda); font-size: 14px; color: var(--cor-texto); vertical-align: middle; }
 .styled-table tr:last-child td { border-bottom: none; }
 .styled-table tr:hover td { background-color: rgba(249, 250, 251, 0.5); }
+
+/* Regra para truncar o nome do cliente na tabela (adiciona os ...) */
+.td-cliente {
+    max-width: 250px; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    cursor: help; 
+}
 
 /* Ícones de Ação Padronizados */
 .actions { display: flex; gap: 8px; align-items: center; justify-content: center; }
@@ -83,7 +95,7 @@ body { background-color: var(--bg-body); color: var(--cor-texto); margin: 0; pad
 .icon-share:hover { color: var(--success-color); background: #f0fdf4; }
 
 /* Filtros e Paginação */
-.filtros-card { background: white; padding: 25px; border-radius: 12px; border: 1px solid var(--cor-borda); margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.filtros-card { background: white; padding: 25px; border-radius: 12px; border: 1px solid var(--cor-borda); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
 .pagination-container { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee; }
 .pagination-container button:disabled { opacity: 0.5; cursor: not-allowed; }
 .page-info { font-size: 14px; font-weight: 600; color: var(--cor-texto-secundario); }
@@ -91,7 +103,8 @@ body { background-color: var(--bg-body); color: var(--cor-texto); margin: 0; pad
 /* =========================================================
    FORMULÁRIOS & INPUTS (Padrão Geral)
    ========================================================= */
-.form-card { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); max-width: 900px; margin: auto; }
+/* O formulário agora ocupa a largura total (100%) em vez de estar restrito a 900px */
+.form-card { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); width: 100%; margin: auto; }
 .form-header { text-align: center; margin-bottom: 25px; }
 .form-header h2 { margin: 0; color: var(--primary-dark); font-size: 20px; }
 .form-header p { margin: 5px 0 0; color: var(--cor-texto-secundario); font-size: 13px; }
