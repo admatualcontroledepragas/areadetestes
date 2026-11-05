@@ -38,7 +38,7 @@ body {
 .content {
     max-width: 1200px !important;
     margin: 0 auto;
-    padding: 20px; /* Mantém 20px para não empurrar muito para baixo no iframe */
+    padding: 20px; 
 }
 
 /* 4. DASHBOARD E MÉTRICAS */
@@ -74,16 +74,24 @@ body {
     min-width: 180px; 
 }
 
-/* 6. FORMULÁRIOS E CARTÕES */
-.form-card, .filtros-card {
+/* 6. FORMULÁRIOS E CARTÕES DE FILTRO */
+.form-card {
     padding: 40px;
-    max-width: 1000px; /* Levemente maior no desktop para os orçamentos */
-    margin: 0 auto;
+    max-width: 1000px;
+    margin: 0 auto; /* Centraliza e limita a largura do formulário */
+}
+
+.filtros-card {
+    padding: 30px;
+    width: 100%; /* Garante a mesma largura idêntica à tabela */
+    max-width: none; 
+    margin: 0 0 25px 0 !important; /* Descola da tabela criando o espaçamento inferior */
 }
 
 /* 7. TABELAS E CENTRALIZAÇÃO DAS AÇÕES */
 .table-container {
     padding: 25px;
+    width: 100%;
 }
 
 .styled-table tbody tr {
@@ -108,7 +116,7 @@ body {
     flex-direction: row !important;
     justify-content: center !important; 
     align-items: center !important;
-    flex-wrap: nowrap !important; /* MÁGICA: Proíbe estritamente a quebra de linha */
+    flex-wrap: nowrap !important; /* Proíbe estritamente a quebra de linha */
     height: 100% !important;
     gap: 10px !important;
     margin: 0 !important;
