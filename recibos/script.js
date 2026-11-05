@@ -1,9 +1,26 @@
 /* =======================================================
    ARQUIVO: script.js (RECIBOS)
-   Totalmente Padronizado (Material Icons e UI Unificada)
+   Lógica de Interface, Integração e Tema Inteligente
    ======================================================= */
 
 const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbycL2E2wsmQIB7ta3EyLH8NpzzMo5trtHySkRIsXWIX64OzdOMTcCoxjiDfefhm6EGuMQ/exec";
+
+// ==========================================
+// VARIÁVEIS GLOBAIS E ESTADOS
+// ==========================================
+let baseServicosGeral = [];
+let historicoImoveis = [];
+let historicoVeiculos = [];
+let dashState = 'imovel'; 
+let filtroHistoricoAtual = 'imoveis'; 
+let paginaAtual = 1; 
+const itensPorPagina = 10;
+let idReciboEmEdicao = null; 
+let tipoReciboEdicao = null;
+let modalImportacaoContext = 'imovel'; 
+
+// Template de loading para usar dentro das tabelas
+const loaderHTML = '<tr><td colspan="5" style="text-align: center; color: #6b7280; padding: 25px;">A carregar dados... <div class="spinner" style="width: 18px; height: 18px; border-width: 3px; display: inline-block; vertical-align: middle; margin-left: 10px; margin-bottom: 0;"></div></td></tr>';
 
 // ==========================================
 // SISTEMA DE ALERTAS CUSTOMIZADOS
@@ -31,18 +48,48 @@ document.getElementById("btnCustomConfirmAcao").addEventListener("click", () => 
 });
 
 // ==========================================
-// VARIÁVEIS GLOBAIS E ESTADOS
+// DETEÇÃO DE TEMA (CLARO/ESCURO) NO IFRAME
 // ==========================================
-let baseServicosGeral = [];
-let historicoImoveis = [];
-let historicoVeiculos = [];
-let dashState = 'imovel'; 
-let filtroHistoricoAtual = 'imoveis'; 
-let paginaAtual = 1; 
-const itensPorPagina = 10;
-let idReciboEmEdicao = null; 
-let tipoReciboEdicao = null;
-let modalImportacaoContext = 'imovel'; 
+function verificarTemaFundo() {
+    const titulos = document.querySelectorAll('.titulo-tela, .form-header h2, .form-header p, .modal-box h3');
+
+    // 1. Deteção automática pelo tema do Sistema Operativo/Navegador (Dark Mode)
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        titulos.forEach(t => t.classList.add('tema-escuro-texto'));
+    }
+
+    // 2. Escuta mudanças em tempo real no sistema operativo
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+        if (event.matches) {
+            titulos.forEach(t => t.classList.add('tema-escuro-texto'));
+        } else {
+            titulos.forEach(t => t.classList.remove('tema-escuro-texto'));
+        }
+    });
+
+    // 3. Listener seguro para comunicação com a página raiz (Google Sites)
+    window.addEventListener('message', function(event) {
+        if (event.data === 'temaEscuro') {
+            titulos.forEach(t => t.classList.add('tema-escuro-texto'));
+        } else if (event.data === 'temaClaro') {
+            titulos.forEach(t => t.classList.remove('tema-escuro-texto'));
+        }
+    });
+    
+    // 4. Fallback: Lê a cor computada do body caso não haja mensagem do Site
+    const bodyStyle = window.getComputedStyle(document.body);
+    let bg = bodyStyle.backgroundColor;
+    let rgb = bg.match(/\d+/g);
+    if (rgb && rgb.length >= 3) {
+        let r = parseInt(rgb[0]), g = parseInt(rgb[1]), b = parseInt(rgb[2]);
+        let luminosidade = (r * 299 + g * 587 + b * 114) / 1000;
+        if (luminosidade < 128 && bg !== 'rgba(0, 0, 0, 0)') {
+            titulos.forEach(t => t.classList.add('tema-escuro-texto'));
+        } else if (bg !== 'rgba(0, 0, 0, 0)') {
+            titulos.forEach(t => t.classList.remove('tema-escuro-texto'));
+        }
+    }
+}
 
 // ==========================================
 // GERADOR DE BLOCOS HTML (IMÓVEIS)
@@ -123,6 +170,11 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("data_recibo").value = d; 
     document.getElementById("data_recibo_v").value = d;
     
+    // Inicia funções visuais
+    verificarTemaFundo();
+    const observer = new MutationObserver(verificarTemaFundo);
+    observer.observe(document.body, { attributes: true, attributeFilter: ['style', 'class'] });
+
     carregarDadosBackend();
 });
 
@@ -239,7 +291,10 @@ function hideLoader() {
 // LÓGICA DO DASHBOARD DINÂMICO
 // ==========================================
 function carregarDadosBackend() {
-    showLoader("A carregar dados...");
+    // Injeta spinners nas tabelas antes do fetch
+    document.querySelector("#tabela-ultimos-dashboard tbody").innerHTML = loaderHTML;
+    document.querySelector("#tabela-historico tbody").innerHTML = loaderHTML;
+
     fetch(URL_APPS_SCRIPT, { method: "POST", body: JSON.stringify({ acao: "dashboard" }), headers: { "Content-Type": "text/plain;charset=utf-8" } })
     .then(r => r.json()).then(d => {
         if(d.status === "sucesso") {
@@ -250,7 +305,12 @@ function carregarDadosBackend() {
             alternarDashboard(dashState);
             paginaAtual = 1; renderizarHistoricoPaginado();
         }
-    }).catch(e => console.error(e)).finally(() => hideLoader());
+    }).catch(e => {
+        console.error(e);
+        const erroMsg = `<tr><td colspan="5" style="text-align:center; padding:25px; color:var(--error-color);">Erro de ligação.</td></tr>`;
+        document.querySelector("#tabela-ultimos-dashboard tbody").innerHTML = erroMsg;
+        document.querySelector("#tabela-historico tbody").innerHTML = erroMsg;
+    });
 }
 
 function alternarDashboard(tipo) {
@@ -274,22 +334,22 @@ function alternarDashboard(tipo) {
 
 function renderizarTabelaComIcones(idTabela, arr) {
     const tbody = document.querySelector(`#${idTabela} tbody`); tbody.innerHTML = "";
-    if(arr.length === 0) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#6b7280;">Nenhum recibo encontrado.</td></tr>`; return; }
+    if(arr.length === 0) { tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:25px; color:#6b7280;">Nenhum recibo registado.</td></tr>`; return; }
     
     arr.forEach(rec => {
         const tr = document.createElement("tr");
-        let l = rec.url_pdf.replace(/\/view.*$/, "/export?format=pdf");
+        let linkDownload = rec.url_pdf ? rec.url_pdf.replace(/\/view.*$/, "/export?format=pdf") : '#';
         const obj64 = btoa(unescape(encodeURIComponent(JSON.stringify(rec))));
         
         tr.innerHTML = `
-            <td><strong>${rec.cliente}</strong></td>
+            <td class="td-cliente" title="${rec.cliente}"><strong>${rec.cliente}</strong></td>
             <td>${rec.data_extenso}</td>
             <td>R$ ${rec.valor_numerico}</td>
             <td style="text-align: center; color:#1f2937;">${rec.id_recibo}</td>
             <td style="text-align: center;">
                 <div class="actions">
                     <button type="button" class="icon-btn icon-pdf" onclick="window.open('${rec.url_pdf}', '_blank')" title="Ver PDF"><span class="material-icons">visibility</span></button>
-                    <button type="button" class="icon-btn icon-share" onclick="window.open('${l}', '_blank')" title="Baixar PDF"><span class="material-icons">download</span></button>
+                    <button type="button" class="icon-btn icon-share" onclick="window.open('${linkDownload}', '_blank')" title="Baixar PDF"><span class="material-icons">download</span></button>
                     <button type="button" class="icon-btn icon-edit" onclick="iniciarEdicao('${obj64}')" title="Editar"><span class="material-icons">edit</span></button>
                     <button type="button" class="icon-btn icon-del" onclick="excluirRecibo('${rec.id_recibo}')" title="Apagar"><span class="material-icons">delete</span></button>
                 </div>
@@ -317,9 +377,9 @@ function mudarPagina(d) { let listaAtiva = (filtroHistoricoAtual === 'imoveis') 
 
 function excluirRecibo(id) {
     mostrarConfirmacao(`Apagar definitivamente o recibo ${id}?`, () => {
-        showLoader("A apagar...");
+        showLoader("A apagar ficheiro...");
         fetch(URL_APPS_SCRIPT, { method: "POST", body: JSON.stringify({ acao: "excluir", id_recibo: id }), headers: { "Content-Type": "text/plain;charset=utf-8" } })
-        .then(r => r.json()).then(d => { if(d.status === "sucesso") { mostrarAlerta("Apagado com sucesso!"); carregarDadosBackend(); } else mostrarAlerta("Erro: " + d.mensagem); }).catch(e => console.error(e)).finally(() => hideLoader());
+        .then(r => r.json()).then(d => { if(d.status === "sucesso") { mostrarAlerta("Recibo apagado com sucesso!"); carregarDadosBackend(); } else mostrarAlerta("Erro: " + d.mensagem); }).catch(e => console.error(e)).finally(() => hideLoader());
     });
 }
 
@@ -339,7 +399,7 @@ function iniciarEdicao(obj64) {
         tipoReciboEdicao = 'veiculo'; resetarFormularioVeiculo();
         document.getElementById("spanIdEdicaoVeiculo").innerText = rec.id_recibo; document.getElementById("alertaEdicaoVeiculo").style.display = "flex";
         document.getElementById("titulo-form-veiculo").innerHTML = "Editando Recibo de Veículos"; 
-        document.getElementById("btnSubmitVeiculo").innerHTML = "Salvar Alterações";
+        document.getElementById("btnSubmitVeiculo").innerHTML = '<span class="material-icons" style="font-size: 18px;">save</span> Salvar Alterações';
         document.getElementById("cliente_v").value = rec.cliente; document.getElementById("valor_numerico_v").value = rec.valor_numerico; document.getElementById("valor_por_extenso_v").value = rec.valor_numerico ? numeroParaExtenso(rec.valor_numerico) : "";
         
         if(rec.cpf_cnpj_puro.length > 11) { document.querySelectorAll('input[name="tipo_pessoa_v"]')[1].checked = true; document.getElementById('docLabel_v').innerText = 'CNPJ'; } else { document.querySelectorAll('input[name="tipo_pessoa_v"]')[0].checked = true; document.getElementById('docLabel_v').innerText = 'CPF'; }
@@ -368,7 +428,7 @@ function iniciarEdicao(obj64) {
         tipoReciboEdicao = 'geral'; resetarFormularioBase();
         document.getElementById("spanIdEdicao").innerText = rec.id_recibo; document.getElementById("alertaEdicao").style.display = "flex";
         document.getElementById("titulo-form").innerHTML = "Editando Recibo de Imóveis"; 
-        document.getElementById("btnSubmit").innerHTML = "Salvar Alterações";
+        document.getElementById("btnSubmit").innerHTML = '<span class="material-icons" style="font-size: 18px;">save</span> Salvar Alterações';
         document.getElementById("cliente").value = rec.cliente; document.getElementById("valor_numerico").value = rec.valor_numerico; document.getElementById("valor_por_extenso").value = rec.valor_numerico ? numeroParaExtenso(rec.valor_numerico) : "";
         
         if(rec.cpf_cnpj_puro.length > 11) { document.querySelectorAll('input[name="tipo_pessoa"]')[1].checked = true; document.getElementById('docLabel').innerText = 'CNPJ'; } else { document.querySelectorAll('input[name="tipo_pessoa"]')[0].checked = true; document.getElementById('docLabel').innerText = 'CPF'; }
@@ -400,14 +460,14 @@ function resetarFormularioBase() {
         if(i>1) document.getElementById("bloco_item_"+i).style.display="none"; 
         document.getElementById('item_'+i+'_servico_select').value=""; document.getElementById('item_'+i+'_servico_outro').value=""; document.getElementById('item_'+i+'_servico_outro').style.display="none"; document.getElementById('item_'+i+'_data').value=""; document.getElementById('item_'+i+'_local').value=""; document.getElementById('item_'+i+'_garantia_select').value=""; document.getElementById('item_'+i+'_garantia_outro').value=""; document.getElementById('item_'+i+'_garantia_outro').style.display="none"; document.getElementById('item_'+i+'_valor').value=""; 
     } 
-    idReciboEmEdicao = null; tipoReciboEdicao = null; document.getElementById("alertaEdicao").style.display = "none"; document.getElementById("titulo-form").innerHTML = "Novo Recibo de Imóveis"; document.getElementById("btnSubmit").innerHTML = "Salvar e Gerar Recibo"; document.getElementById('docLabel').innerText = 'CPF'; document.getElementById("data_recibo").value = new Date().toISOString().split("T")[0]; document.getElementById("btnAddItem").style.display = "block"; 
+    idReciboEmEdicao = null; tipoReciboEdicao = null; document.getElementById("alertaEdicao").style.display = "none"; document.getElementById("titulo-form").innerHTML = "Novo Recibo de Imóveis"; document.getElementById("btnSubmit").innerHTML = '<span class="material-icons" style="font-size: 18px;">receipt_long</span> Salvar e Gerar Recibo'; document.getElementById('docLabel').innerText = 'CPF'; document.getElementById("data_recibo").value = new Date().toISOString().split("T")[0]; document.getElementById("btnAddItem").style.display = "block"; 
     
     document.getElementById("incluir_dados_bancarios").checked = false;
 }
 
 function resetarFormularioVeiculo() { 
     document.getElementById("reciboVeiculoForm").reset(); 
-    idReciboEmEdicao = null; tipoReciboEdicao = null; document.getElementById("alertaEdicaoVeiculo").style.display = "none"; document.getElementById("titulo-form-veiculo").innerHTML = "Novo Recibo de Veículos"; document.getElementById("btnSubmitVeiculo").innerHTML = "Salvar Recibo de Veículo"; document.getElementById('docLabel_v').innerText = 'CPF'; document.getElementById("data_recibo_v").value = new Date().toISOString().split("T")[0]; document.getElementById("garantia_outro_v").style.display = "none"; 
+    idReciboEmEdicao = null; tipoReciboEdicao = null; document.getElementById("alertaEdicaoVeiculo").style.display = "none"; document.getElementById("titulo-form-veiculo").innerHTML = "Novo Recibo de Veículos"; document.getElementById("btnSubmitVeiculo").innerHTML = '<span class="material-icons" style="font-size: 18px;">directions_car</span> Salvar Recibo Veículo'; document.getElementById('docLabel_v').innerText = 'CPF'; document.getElementById("data_recibo_v").value = new Date().toISOString().split("T")[0]; document.getElementById("garantia_outro_v").style.display = "none"; 
     
     document.getElementById("incluir_dados_bancarios_v").checked = false;
 }
@@ -440,7 +500,7 @@ document.getElementById("reciboForm").addEventListener("submit", function(event)
         item_05: montarTextoItem(5),
         incluir_dados_bancarios: document.getElementById("incluir_dados_bancarios").checked 
     };
-    enviarBackend(dados, btn, resetarFormularioBase, idReciboEmEdicao ? "Salvar Alterações" : "Salvar e Gerar Recibo");
+    enviarBackend(dados, btn, resetarFormularioBase, idReciboEmEdicao ? '<span class="material-icons" style="font-size: 18px;">save</span> Salvar Alterações' : '<span class="material-icons" style="font-size: 18px;">receipt_long</span> Salvar e Gerar Recibo');
 });
 
 document.getElementById("reciboVeiculoForm").addEventListener("submit", function(event) {
@@ -467,11 +527,11 @@ document.getElementById("reciboVeiculoForm").addEventListener("submit", function
         garantia: document.getElementById("garantia_select_v").value === "Outro" ? document.getElementById("garantia_outro_v").value : document.getElementById("garantia_select_v").value,
         incluir_dados_bancarios: document.getElementById("incluir_dados_bancarios_v").checked 
     };
-    enviarBackend(dados, btn, resetarFormularioVeiculo, idReciboEmEdicao ? "Salvar Alterações" : "Salvar Recibo de Veículo");
+    enviarBackend(dados, btn, resetarFormularioVeiculo, idReciboEmEdicao ? '<span class="material-icons" style="font-size: 18px;">save</span> Salvar Alterações' : '<span class="material-icons" style="font-size: 18px;">directions_car</span> Salvar Recibo Veículo');
 });
 
 function enviarBackend(dados, btn, fReset, txtBotaoBase) {
-    showLoader("A gerar e a guardar PDF..."); 
+    showLoader("Gerando recibo..."); 
     fetch(URL_APPS_SCRIPT, { method: "POST", body: JSON.stringify(dados), headers: { "Content-Type": "text/plain;charset=utf-8" } })
     .then(r => r.json())
     .then(data => { 
@@ -481,7 +541,7 @@ function enviarBackend(dados, btn, fReset, txtBotaoBase) {
             fReset(); 
             carregarDadosBackend(); 
             mudarAba('dashboard'); 
-            window.open(data.url_pdf, '_blank'); 
+            // Janela em branco evitada: O utilizador clica em Baixar/Ver na tabela.
         } else {
             mostrarAlerta("Erro: " + data.mensagem); 
         }
@@ -528,9 +588,7 @@ document.getElementById("btnAbrirImportacaoVeiculo").addEventListener("click", f
     .then(r=>r.json()).then(d=>{ if (d.status === "sucesso") { baseServicosGeral = d.dados; document.getElementById("modalImportacao").style.display = "flex"; document.getElementById("buscaModal").value = ""; renderizarTabelaModal(baseServicosGeral.slice(0, 10)); atualizarContadorModal(); } else mostrarAlerta("Erro: " + d.mensagem); }).finally(() => { btn.innerHTML = `<span class="material-icons" style="font-size:18px;">cloud_download</span> Importar`; btn.disabled = false; }); 
 });
 
-// AQUI ESTAVA O ERRO (BOTÃO INEXISTENTE NO HTML). Corrigido abaixo!
 function fecharModalImportacao() { document.getElementById("modalImportacao").style.display = "none"; } 
-// Removi a linha que chamava o 'btnFecharModalTop' que não existia.
 document.getElementById("btnCancelarModal").addEventListener("click", fecharModalImportacao); 
 
 document.getElementById("buscaModal").addEventListener("input", function(e) { 
@@ -545,7 +603,7 @@ function renderizarTabelaModal(lista) {
     lista.forEach(srv => { 
         const tr = document.createElement("tr"); 
         let infoEspecífica = modalImportacaoContext === 'veiculo' ? srv.placa : srv.servico;
-        tr.innerHTML = `<td align="center"><input type="checkbox" class="chk-linha" style="width:16px; height:16px; accent-color:#004481; cursor:pointer;" value="${encodeURIComponent(JSON.stringify(srv))}" onchange="atualizarContadorModal()"></td><td><strong>${srv.cliente}</strong></td><td>${infoEspecífica}</td><td>${formatarDataPadrao(srv.data)}</td>`; 
+        tr.innerHTML = `<td align="center"><input type="checkbox" class="chk-linha" style="width:16px; height:16px; accent-color:#004481; cursor:pointer;" value="${encodeURIComponent(JSON.stringify(srv))}" onchange="atualizarContadorModal()"></td><td class="td-cliente" title="${srv.cliente}"><strong>${srv.cliente}</strong></td><td>${infoEspecífica}</td><td>${formatarDataPadrao(srv.data)}</td>`; 
         tbody.appendChild(tr); 
     }); 
 }
