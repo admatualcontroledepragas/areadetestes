@@ -132,12 +132,14 @@
             </button>
         </div>
 
-        <!-- Filtros transformados num card separado -->
-        <div class="filtros-card" style="padding: 10px; margin-bottom: 20px;">
-            <div class="dash-tabs" style="border:none; margin-bottom: 0; justify-content: center; flex-wrap: wrap; background: transparent;">
-                <button id="btn-hist-imoveis" class="tab-btn active" onclick="mudarFiltroHistorico('imoveis')">Imóveis</button>
-                <button id="btn-hist-veiculos" class="tab-btn" onclick="mudarFiltroHistorico('veiculos')">Veículos</button>
-            </div>
+        <!-- ABAS IDÊNTICAS AO PAINEL -->
+        <div class="dash-tabs" style="flex-wrap: wrap; justify-content: center;">
+            <button id="btn-hist-imoveis" class="tab-btn active" onclick="mudarFiltroHistorico('imoveis')">
+                <span class="material-icons" style="font-size:18px;">home</span> Imóveis
+            </button>
+            <button id="btn-hist-veiculos" class="tab-btn" onclick="mudarFiltroHistorico('veiculos')">
+                <span class="material-icons" style="font-size:18px;">directions_car</span> Veículos
+            </button>
         </div>
 
         <div class="table-container">
