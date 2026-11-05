@@ -12,6 +12,9 @@ let paginaAtual = 1;
 const itensPorPagina = 10;
 let filtroAtual = { cliente: '', codigo: '', dataInicio: '', dataFim: '' };
 
+// Template de loading para usar dentro das tabelas
+const loaderHTML = '<tr><td colspan="5" style="text-align: center; color: #6b7280; padding: 25px;">Carregando dados... <div class="spinner" style="width: 18px; height: 18px; border-width: 3px; display: inline-block; vertical-align: middle; margin-left: 10px; margin-bottom: 0;"></div></td></tr>';
+
 window.addEventListener('DOMContentLoaded', () => {
     configurarDataAtual();
     inicializarQuill();
@@ -19,7 +22,7 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==========================================
-// LOADER GLOBAL
+// LOADER GLOBAL (Apenas para gerar/apagar)
 // ==========================================
 function showLoader(txt = "Aguarde...") { 
     document.getElementById("loader-text").innerText = txt; 
@@ -30,7 +33,7 @@ function hideLoader() {
 }
 
 // ==========================================================
-// SISTEMA DE MODAL CUSTOMIZADO (Padrão Recibos)
+// SISTEMA DE MODAL CUSTOMIZADO
 // ==========================================================
 function mostrarModal(mensagem, tipo = 'alerta', callbackConfirmacao = null) {
     const modal = document.getElementById('modal-sistema');
@@ -121,7 +124,7 @@ function construirUrlQuery(pagina, limite) {
 async function carregarDashboard() {
     const tabelaDashboard = document.getElementById('tabela-dashboard');
     const totalRegistradoTexto = document.getElementById('total-registrado');
-    tabelaDashboard.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #6b7280;">A carregar dados...</td></tr>';
+    tabelaDashboard.innerHTML = loaderHTML; // Usa o spinner embutido na tabela
     
     try {
         const resposta = await fetch(`${URL_BACKEND}?pagina=1&limite=5`);
@@ -133,25 +136,24 @@ async function carregarDashboard() {
             
             tabelaDashboard.innerHTML = '';
             if (arrayDados.length === 0) {
-                tabelaDashboard.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #6b7280;">Nenhum orçamento registado.</td></tr>';
+                tabelaDashboard.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #6b7280; padding: 25px;">Nenhum orçamento registado.</td></tr>';
             } else {
                 arrayDados.forEach(orcamento => {
                     tabelaDashboard.appendChild(criarLinhaTabela(orcamento));
                 });
             }
         } else {
-            tabelaDashboard.innerHTML = `<tr><td colspan="5" style="color: var(--error-color); text-align: center;">Erro: ${resultado.erro}</td></tr>`;
+            tabelaDashboard.innerHTML = `<tr><td colspan="5" style="color: var(--error-color); text-align: center; padding: 25px;">Erro: ${resultado.erro}</td></tr>`;
         }
     } catch (erro) {
         console.error(erro);
-        tabelaDashboard.innerHTML = `<tr><td colspan="5" style="color: var(--error-color); text-align: center;">Erro de ligação.</td></tr>`;
+        tabelaDashboard.innerHTML = `<tr><td colspan="5" style="color: var(--error-color); text-align: center; padding: 25px;">Erro de ligação.</td></tr>`;
     }
 }
 
 async function carregarHistorico(pagina) {
     const tabelaHistorico = document.getElementById('tabela-historico');
-    tabelaHistorico.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #6b7280;">A carregar dados...</td></tr>';
-    showLoader("A carregar histórico...");
+    tabelaHistorico.innerHTML = loaderHTML; // Usa o spinner embutido em vez do loader global
     
     try {
         const resposta = await fetch(construirUrlQuery(pagina, itensPorPagina));
@@ -164,7 +166,7 @@ async function carregarHistorico(pagina) {
             
             tabelaHistorico.innerHTML = '';
             if (todosOrcamentos.length === 0) {
-                tabelaHistorico.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #6b7280;">Nenhum orçamento encontrado.</td></tr>';
+                tabelaHistorico.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #6b7280; padding: 25px;">Nenhum orçamento encontrado.</td></tr>';
             } else {
                 todosOrcamentos.forEach(orcamento => {
                     tabelaHistorico.appendChild(criarLinhaTabela(orcamento));
@@ -175,18 +177,20 @@ async function carregarHistorico(pagina) {
             document.getElementById('btn-prev').disabled = (paginaAtual <= 1);
             document.getElementById('btn-next').disabled = (paginaAtual >= totalPaginas);
         } else {
-            tabelaHistorico.innerHTML = `<tr><td colspan="5" style="color: var(--error-color); text-align: center;">Erro: ${resultado.erro}</td></tr>`;
+            tabelaHistorico.innerHTML = `<tr><td colspan="5" style="color: var(--error-color); text-align: center; padding: 25px;">Erro: ${resultado.erro}</td></tr>`;
         }
     } catch (erro) {
         console.error(erro);
-        tabelaHistorico.innerHTML = `<tr><td colspan="5" style="color: var(--error-color); text-align: center;">Erro de ligação.</td></tr>`;
-    } finally {
-        hideLoader();
+        tabelaHistorico.innerHTML = `<tr><td colspan="5" style="color: var(--error-color); text-align: center; padding: 25px;">Erro de ligação.</td></tr>`;
     }
 }
 
 function criarLinhaTabela(orcamento) {
     const tr = document.createElement('tr');
+    
+    // Converte o link de visualização (Drive) num link de Exportação Direta de PDF
+    let linkDownload = orcamento.urlPdf ? orcamento.urlPdf.replace(/\/view.*$/, "/export?format=pdf") : '#';
+
     tr.innerHTML = `
         <td><strong>${orcamento.cliente}</strong></td>
         <td>${orcamento.dataEmissao}</td>
@@ -194,7 +198,8 @@ function criarLinhaTabela(orcamento) {
         <td style="text-align: center; color:#1f2937;">${orcamento.codigo}</td>
         <td style="text-align: center;">
             <div class="actions">
-                <button type="button" class="icon-btn icon-share" onclick="window.open('${orcamento.urlPdf}', '_blank')" title="Ver PDF"><span class="material-icons">visibility</span></button>
+                <button type="button" class="icon-btn icon-pdf" onclick="window.open('${orcamento.urlPdf}', '_blank')" title="Ver PDF"><span class="material-icons">visibility</span></button>
+                <button type="button" class="icon-btn icon-share" onclick="window.open('${linkDownload}', '_blank')" title="Baixar Arquivo"><span class="material-icons">download</span></button>
                 <button type="button" class="icon-btn icon-edit" onclick="editarOrcamento('${orcamento.codigo}')" title="Editar"><span class="material-icons">edit</span></button>
                 <button type="button" class="icon-btn icon-del" onclick="excluirArquivoDoDrive('${orcamento.urlPdf}')" title="Apagar"><span class="material-icons">delete</span></button>
             </div>
