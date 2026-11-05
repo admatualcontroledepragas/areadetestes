@@ -71,8 +71,9 @@
             </div>
 
             <div class="action-bar">
+                <!-- Botão corrigido para apenas "Histórico" -->
                 <button class="btn-action btn-historico" onclick="alternarTela('historico')">
-                    <span class="material-icons" style="font-size:18px;">manage_search</span> Histórico Completo
+                    <span class="material-icons" style="font-size:18px;">manage_search</span> Histórico
                 </button>
                 <button class="btn-action btn-novo" onclick="alternarTela('formulario')">
                     <span class="material-icons" style="font-size:18px;">add_circle</span> Novo Orçamento
@@ -111,34 +112,33 @@
                 </button>
             </div>
 
-            <div class="table-container">
-                
-                <!-- CONTAINER DE FILTROS -->
-                <div class="filtros-card">
-                    <div class="form-grid" style="align-items: end;">
-                        <div class="form-group">
-                            <label class="title-label">Cliente:</label>
-                            <input type="text" id="filtro-cliente" class="form-input" placeholder="Nome do cliente">
-                        </div>
-                        <div class="form-group">
-                            <label class="title-label">Código:</label>
-                            <input type="text" id="filtro-codigo" class="form-input" placeholder="Ex: ABC1234O">
-                        </div>
-                        <div class="form-group">
-                            <label class="title-label">De:</label>
-                            <input type="date" id="filtro-data-inicio" class="form-input">
-                        </div>
-                        <div class="form-group">
-                            <label class="title-label">Até:</label>
-                            <input type="date" id="filtro-data-fim" class="form-input">
-                        </div>
+            <!-- CONTAINER DE FILTROS MOVIDO PARA FORA DA TABELA -->
+            <div class="filtros-card">
+                <div class="form-grid" style="align-items: end;">
+                    <div class="form-group">
+                        <label class="title-label">Cliente:</label>
+                        <input type="text" id="filtro-cliente" class="form-input" placeholder="Nome do cliente">
                     </div>
-                    <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 15px;">
-                        <button class="btn-action btn-historico" onclick="limparFiltros()"><span class="material-icons" style="font-size:18px;">clear_all</span> Limpar</button>
-                        <button class="btn-action btn-novo" onclick="aplicarFiltros()"><span class="material-icons" style="font-size:18px;">search</span> Buscar</button>
+                    <div class="form-group">
+                        <label class="title-label">Código:</label>
+                        <input type="text" id="filtro-codigo" class="form-input" placeholder="Ex: ABC1234O">
+                    </div>
+                    <div class="form-group">
+                        <label class="title-label">De:</label>
+                        <input type="date" id="filtro-data-inicio" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="title-label">Até:</label>
+                        <input type="date" id="filtro-data-fim" class="form-input">
                     </div>
                 </div>
+                <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 15px;">
+                    <button class="btn-action btn-historico" onclick="limparFiltros()"><span class="material-icons" style="font-size:18px;">clear_all</span> Limpar</button>
+                    <button class="btn-action btn-novo" onclick="aplicarFiltros()"><span class="material-icons" style="font-size:18px;">search</span> Buscar</button>
+                </div>
+            </div>
 
+            <div class="table-container">
                 <div style="overflow-x: auto;">
                     <table class="styled-table">
                         <thead>
