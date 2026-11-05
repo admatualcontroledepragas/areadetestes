@@ -1,130 +1,213 @@
-/* ========================================= */
-/* === AJUSTES MOBILE (Até 1024px) === */
-/* ========================================= */
+/* =======================================================
+   ARQUIVO: stylemobile.css (RELATÓRIOS)
+   (Estrutura, Espaçamentos e Layout para Ecrãs até 1024px)
+   ======================================================= */
 
-.navbar { flex-direction: column; align-items: flex-start; gap: 10px; padding: 15px; }
-.navbar div { width: 100%; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
-.btn-voltar-portal { margin-right: 0; width: 100%; justify-content: center; }
+body {
+    padding-bottom: 20px;
+}
 
-/* 1. CORREÇÃO DO CABEÇALHO DO HISTÓRICO (Botão Voltar sem quebrar linha) */
-#view-historico > div:first-child,
-#view-formulario > div:first-child {
-    flex-wrap: nowrap !important;
+#app-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+/* 1. CABEÇALHO E NAVBAR */
+.navbar { 
+    flex-direction: column; 
+    align-items: flex-start; 
+    gap: 10px; 
+    padding: 15px; 
+}
+.navbar div { 
+    width: 100%; 
+    justify-content: space-between; 
+    flex-wrap: wrap; 
+    gap: 10px; 
+}
+.btn-voltar-portal { 
+    margin-right: 0; 
+    width: 100%; 
+    justify-content: center; 
+}
+
+/* 2. ABAS, FILTROS E AÇÕES */
+.dash-tabs {
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.tab-btn {
+    min-width: 120px;
+    flex: 1 1 auto;
+    font-size: 13px;
+    padding: 10px;
+}
+.filtros-card {
+    padding: 15px;
+}
+.filter-buttons-container { 
+    flex-direction: column; 
+    gap: 10px; 
+}
+
+.action-bar {
+    flex-direction: column;
     gap: 10px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
 }
-#view-historico > div:first-child h2,
-#view-formulario > div:first-child h2 {
-    font-size: 18px !important;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-#view-historico > div:first-child button,
-#view-formulario > div:first-child button {
-    width: auto !important;
-    padding: 8px 12px !important;
-    font-size: 13px !important;
-    flex-shrink: 0;
-    margin: 0 !important;
+.btn-action {
+    width: 100%;
+    justify-content: center;
 }
 
-.form-grid { grid-template-columns: 1fr; gap: 10px; }
-.form-full { grid-column: span 1; }
+/* 3. FORMULÁRIOS E ESPECÍFICOS DE RELATÓRIOS */
+.form-grid { 
+    grid-template-columns: 1fr !important; 
+    gap: 10px; 
+}
+.form-card { 
+    padding: 15px; 
+    border-radius: 12px; 
+    box-shadow: none; 
+    border: 1px solid var(--cor-borda); 
+}
 
-.action-bar { flex-direction: column; }
-.btn-action { width: 100%; justify-content: center; }
-.form-actions { flex-direction: column; }
-.form-actions button { width: 100%; }
+.input-group-row, .time-group { 
+    flex-direction: column; 
+    gap: 10px; 
+    width: 100%;
+}
+.time-group input[type="time"] {
+    width: 100% !important;
+}
 
-.input-group-row { flex-direction: column; gap: 10px; }
-.btn-importar { width: 100%; justify-content: center; }
+.btn-importar { 
+    width: 100%; 
+    justify-content: center; 
+    height: 42px; 
+    margin-top: 0; 
+}
 
-.modal-content { width: 90%; padding: 20px; }
-/* Removido o padding-top antigo daqui para a centralização funcionar perfeitamente */
+.form-actions { 
+    flex-direction: column; 
+}
+.form-actions button { 
+    width: 100%; 
+}
 
-.dash-tabs { flex-wrap: wrap; justify-content: center; }
-.tab-btn { min-width: 120px; flex: 1 1 auto; }
+/* 4. TABELAS TRANSFORMADAS EM CARTÕES (MOBILE) */
+.content { padding: 10px; padding-bottom: 80px; }
+.table-container { 
+    background: transparent; 
+    border: none; 
+    box-shadow: none; 
+    padding: 0; 
+}
 
-.filtros-card { padding: 15px; }
-.filter-buttons-container { flex-direction: column; gap: 10px; }
+.styled-table, .styled-table thead, .styled-table tbody, .styled-table th, .styled-table td, .styled-table tr {
+    display: block;
+}
+.styled-table thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+}
 
-/* --- TABELA EM CARDS (MOBILE) --- */
-.table-container { background: transparent; border: none; box-shadow: none; padding: 0; }
-table, thead, tbody, th, td, tr { display: block; }
-thead tr { position: absolute; top: -9999px; left: -9999px; }
-
-tr {
+.styled-table tr {
     background: white;
     border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
     margin-bottom: 15px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--cor-borda);
     padding: 15px;
-    width: 100%; 
-    box-sizing: border-box; 
+    width: 100%;
+    box-sizing: border-box;
 }
 
-table { min-width: 0; width: 100%; }
-
-/* 2. CORREÇÃO DO ALINHAMENTO DE "CÓDIGO" E "DOCS" */
-td {
+.styled-table td {
     border: none;
     border-bottom: 1px solid #f3f4f6;
     position: relative;
     padding: 12px 0 !important;
-    
     display: grid !important;
-    grid-template-columns: 80px 1fr !important; /* Fixa a largura do título rigidamente */
+    grid-template-columns: 80px 1fr !important; /* Fixa a largura do rótulo */
     align-items: center !important;
-    text-align: left !important; /* Força texto à esquerda */
+    text-align: left !important;
     gap: 15px !important;
-    font-size: 14px;
-    font-family: 'Inter', sans-serif;
+    white-space: normal !important;
+    max-width: 100% !important;
 }
 
-/* Obriga a que o interior dos DOCS fique encostado à esquerda */
-td > div {
-    justify-content: flex-start !important;
+/* Rótulos Padronizados */
+.styled-table td::before {
+    font-weight: 700; 
+    color: var(--cor-texto-secundario); 
+    font-size: 11px; 
+    text-transform: uppercase;
 }
 
-td::before {
-    content: attr(data-label); 
-    font-weight: 700; color: #6b7280; font-size: 11px; text-transform: uppercase;
-    font-family: 'Inter', sans-serif;
-    text-align: left;
+/* Mapeamento de Colunas Padrão */
+.styled-table td:nth-of-type(1)::before { content: "Cliente"; }
+.styled-table td:nth-of-type(3)::before { content: "Serviço"; }
+.styled-table td:nth-of-type(4)::before { content: "Data"; }
+.styled-table td:nth-of-type(5)::before { content: "Código"; }
+
+/* MÁGICA: Alternância dinâmica de Endereço/Placa no Telemóvel */
+.modo-imovel td:nth-of-type(2)::before { content: "Endereço"; }
+.modo-veiculo td:nth-of-type(2)::before { content: "Placa"; }
+
+/* Histórico tem ordem de colunas diferente (Data / Serviço) */
+#view-historico .styled-table td:nth-of-type(3)::before { content: "Data"; }
+#view-historico .styled-table td:nth-of-type(4)::before { content: "Serviço"; }
+
+/* AÇÕES E DOCS CENTRALIZADOS PERFEITAMENTE SEM RÓTULO LATERAL */
+.styled-table td:nth-last-child(1),
+.styled-table td:nth-last-child(2) {
+    border-bottom: none !important;
+    display: flex !important;
+    width: 100% !important;
+    padding: 15px 0 5px 0 !important;
+    justify-content: center !important;
+    align-items: center !important;
 }
 
-/* Rótulos Padronizados para o Dashboard */
-#view-dashboard td:nth-of-type(1)::before { content: "Cliente"; }
-#view-dashboard td:nth-of-type(2)::before { content: "Local"; }
-#view-dashboard td:nth-of-type(3)::before { content: "Serviço"; }
-#view-dashboard td:nth-of-type(4)::before { content: "Data"; }
-#view-dashboard td:nth-of-type(5)::before { content: "Código"; } 
-#view-dashboard td:nth-of-type(6)::before { content: "Docs"; }
-#view-dashboard td:nth-of-type(7)::before { display: none; } 
-
-/* Rótulos Padronizados para o Histórico */
-#view-historico td:nth-of-type(1)::before { content: "Cliente"; }
-#view-historico td:nth-of-type(2)::before { content: "Local"; }
-#view-historico td:nth-of-type(3)::before { content: "Data"; }
-#view-historico td:nth-of-type(4)::before { content: "Serviço"; }
-#view-historico td:nth-of-type(5)::before { content: "Código"; } 
-#view-historico td:nth-of-type(6)::before { content: "Docs"; }
-#view-historico td:nth-of-type(7)::before { display: none; }
-
-/* AÇÕES CENTRALIZADAS (Força Bruta para Flexbox, idêntico aos Comunicados) */
-td:last-child { 
-    border-bottom: none !important; display: flex !important; width: 100% !important; 
-    padding: 15px 0 5px 0 !important; justify-content: center !important; align-items: center !important;
+.styled-table td:nth-last-child(1)::before,
+.styled-table td:nth-last-child(2)::before {
+    display: none !important;
 }
 
-.actions { 
-    display: flex !important; flex-direction: row !important; justify-content: center !important; 
-    align-items: center !important; width: 100% !important; gap: 20px !important; margin: 0 !important; padding: 0 !important; flex-wrap: nowrap !important;
+.styled-table td .actions,
+.styled-table td > div {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    gap: 15px !important;
+    margin: 0 !important;
+    flex-wrap: wrap !important; 
 }
 
-.actions .icon-btn { 
-    padding: 8px !important; border-radius: 50% !important; display: flex !important; 
-    align-items: center !important; justify-content: center !important; background: transparent !important;
-} 
-.actions .icon-btn svg { width: 22px !important; height: 22px !important; }
+.icon-btn {
+    padding: 10px !important;
+    background-color: #f8fafc;
+}
+
+/* 5. AJUSTES DOS MODAIS PARA ECRÃS PEQUENOS */
+.modal-box {
+    width: 95%;
+    max-height: 85vh;
+    padding: 20px;
+}
+.modal-overlay { 
+    padding-top: 40px; 
+    padding-bottom: 40px; 
+}
+.modal-actions {
+    flex-direction: column;
+}
+.modal-actions button {
+    width: 100%;
+}
