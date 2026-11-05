@@ -12,7 +12,7 @@ let paginaAtual = 1;
 const itensPorPagina = 10;
 let filtroAtual = { cliente: '', codigo: '', dataInicio: '', dataFim: '' };
 
-// Template de loading para usar dentro das tabelas (Carregando dados com spinner)
+// Template de loading para usar dentro das tabelas
 const loaderHTML = '<tr><td colspan="5" style="text-align: center; color: #6b7280; padding: 25px;">Carregando dados... <div class="spinner" style="width: 18px; height: 18px; border-width: 3px; display: inline-block; vertical-align: middle; margin-left: 10px; margin-bottom: 0;"></div></td></tr>';
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -20,36 +20,38 @@ window.addEventListener('DOMContentLoaded', () => {
     inicializarQuill();
     carregarDashboard(); 
     
-    // Inicia a verificação de cor de fundo para o modo escuro
     verificarTemaFundo();
-    const observer = new MutationObserver(verificarTemaFundo);
-    observer.observe(document.body, { attributes: true, attributeFilter: ['style', 'class'] });
 });
 
 // ==========================================
-// DETEÇÃO DE TEMA (CLARO/ESCURO)
+// DETEÇÃO DE TEMA (CLARO/ESCURO) NO IFRAME
 // ==========================================
 function verificarTemaFundo() {
-    // Lê a cor computada do body
-    const bodyStyle = window.getComputedStyle(document.body);
-    let bg = bodyStyle.backgroundColor;
-    
-    // Extrai os valores RGB
-    let rgb = bg.match(/\d+/g);
-    if (rgb && rgb.length >= 3) {
-        let r = parseInt(rgb[0]), g = parseInt(rgb[1]), b = parseInt(rgb[2]);
-        // Fórmula padrão de luminância (YIQ) para perceber se a cor é escura ou clara
-        let luminosidade = (r * 299 + g * 587 + b * 114) / 1000;
-        
-        // Seleciona os títulos que precisam ficar brancos no modo escuro
-        const titulos = document.querySelectorAll('.titulo-tela, .form-header h2, .form-header p');
-        
-        if (luminosidade < 128 && bg !== 'rgba(0, 0, 0, 0)') { // Se for menor que 128, é escuro
+    const titulos = document.querySelectorAll('.titulo-tela, .form-header h2, .form-header p');
+
+    // 1. Deteção automática pelo tema do Sistema Operativo/Navegador (Dark Mode)
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        titulos.forEach(t => t.classList.add('tema-escuro-texto'));
+    }
+
+    // 2. Escuta mudanças em tempo real no sistema operativo
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+        if (event.matches) {
             titulos.forEach(t => t.classList.add('tema-escuro-texto'));
-        } else { // Se for claro ou transparente
+        } else {
             titulos.forEach(t => t.classList.remove('tema-escuro-texto'));
         }
-    }
+    });
+
+    // 3. Listener seguro para comunicação com a página raiz (Google Sites)
+    // Se a página raiz enviar uma mensagem, o iframe obedece à cor.
+    window.addEventListener('message', function(event) {
+        if (event.data === 'temaEscuro') {
+            titulos.forEach(t => t.classList.add('tema-escuro-texto'));
+        } else if (event.data === 'temaClaro') {
+            titulos.forEach(t => t.classList.remove('tema-escuro-texto'));
+        }
+    });
 }
 
 // ==========================================
@@ -122,7 +124,7 @@ function alternarTela(telaAlvo) {
 }
 
 // ==========================================================
-// LÓGICA DE DADOS, FILTROS E PAGINAÇÃO NO SERVIDOR
+// LÓGICA DE DADOS, FILTROS E PAGINAÇÃO
 // ==========================================================
 function aplicarFiltros() {
     filtroAtual.cliente = document.getElementById('filtro-cliente').value;
@@ -155,7 +157,7 @@ function construirUrlQuery(pagina, limite) {
 async function carregarDashboard() {
     const tabelaDashboard = document.getElementById('tabela-dashboard');
     const totalRegistradoTexto = document.getElementById('total-registrado');
-    tabelaDashboard.innerHTML = loaderHTML; // Usa o spinner embutido na tabela
+    tabelaDashboard.innerHTML = loaderHTML;
     
     try {
         const resposta = await fetch(`${URL_BACKEND}?pagina=1&limite=5`);
@@ -177,14 +179,13 @@ async function carregarDashboard() {
             tabelaDashboard.innerHTML = `<tr><td colspan="5" style="color: var(--error-color); text-align: center; padding: 25px;">Erro: ${resultado.erro}</td></tr>`;
         }
     } catch (erro) {
-        console.error(erro);
         tabelaDashboard.innerHTML = `<tr><td colspan="5" style="color: var(--error-color); text-align: center; padding: 25px;">Erro de ligação.</td></tr>`;
     }
 }
 
 async function carregarHistorico(pagina) {
     const tabelaHistorico = document.getElementById('tabela-historico');
-    tabelaHistorico.innerHTML = loaderHTML; // Usa o spinner embutido em vez do loader global
+    tabelaHistorico.innerHTML = loaderHTML; 
     
     try {
         const resposta = await fetch(construirUrlQuery(pagina, itensPorPagina));
@@ -211,7 +212,6 @@ async function carregarHistorico(pagina) {
             tabelaHistorico.innerHTML = `<tr><td colspan="5" style="color: var(--error-color); text-align: center; padding: 25px;">Erro: ${resultado.erro}</td></tr>`;
         }
     } catch (erro) {
-        console.error(erro);
         tabelaHistorico.innerHTML = `<tr><td colspan="5" style="color: var(--error-color); text-align: center; padding: 25px;">Erro de ligação.</td></tr>`;
     }
 }
@@ -219,11 +219,8 @@ async function carregarHistorico(pagina) {
 function criarLinhaTabela(orcamento) {
     const tr = document.createElement('tr');
     
-    // Converte o link de visualização (Drive) num link de Exportação Direta de PDF
     let linkDownload = orcamento.urlPdf ? orcamento.urlPdf.replace(/\/view.*$/, "/export?format=pdf") : '#';
 
-    // A classe .td-cliente aplica o truncamento (os ...) 
-    // O atributo title adiciona a "caixinha flutuante" com o texto completo
     tr.innerHTML = `
         <td class="td-cliente" title="${orcamento.cliente}"><strong>${orcamento.cliente}</strong></td>
         <td>${orcamento.dataEmissao}</td>
@@ -443,7 +440,8 @@ async function enviarFormulario() {
     btn.innerHTML = 'A processar...'; 
     btn.disabled = true; 
     
-    showLoader("A gerar e a guardar orçamento PDF...");
+    // TEXTO DO LOADER ATUALIZADO AQUI
+    showLoader("Gerando orçamento...");
 
     const configuracaoFormulario = {};
     document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
@@ -473,7 +471,8 @@ async function enviarFormulario() {
                 toggleSecao('sec-descupinizacao', false);
                 
                 alternarTela('dashboard');
-                window.open(res.urlPdf, '_blank'); 
+                // REMOVIDO: A página em branco não vai abrir mais. 
+                // O PDF pode ser aberto clicando em "Ver PDF" ou "Baixar" no Dashboard.
             });
         } 
         else { 
