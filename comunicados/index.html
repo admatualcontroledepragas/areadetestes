@@ -83,7 +83,6 @@
                 </div>
 
                 <div class="action-bar">
-                    <!-- Botão renomeado para "Histórico" conforme padrão -->
                     <button class="btn-action btn-historico" onclick="abrirViewHistorico()">
                         <span class="material-icons" style="font-size:18px;">manage_search</span> Histórico
                     </button>
@@ -115,16 +114,15 @@
             <!-- ========================================== -->
             <!-- VIEW 2: HISTÓRICO COMPLETO                 -->
             <!-- ========================================== -->
-            <div id="view-historico" class="view-section hidden">
+            <!-- CORREÇÃO AQUI: removida a classe 'hidden' -->
+            <div id="view-historico" class="view-section">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                    <!-- Classe titulo-tela adicionada para dark mode dinâmico -->
                     <h2 class="titulo-tela" style="margin:0; font-size: 20px; transition: color 0.3s;">Histórico de Comunicados</h2>
                     <button onclick="fecharHistorico()" class="btn-action btn-historico">
                         <span class="material-icons" style="font-size:18px;">arrow_back</span> Voltar
                     </button>
                 </div>
 
-                <!-- Filtros Card separado -->
                 <div class="filtros-card">
                     <div class="dash-tabs" style="border:none; margin-bottom: 20px; justify-content: center; flex-wrap: wrap; background: transparent;">
                         <button class="tab-btn active" onclick="setFiltroHistorico('Dedetizacao', this)">Dedetização</button>
@@ -180,8 +178,8 @@
             <!-- ========================================== -->
             <!-- VIEW 3: FORMULÁRIOS UNIFICADOS             -->
             <!-- ========================================== -->
-            <div id="view-formulario" class="view-section hidden">
-                <!-- Removido o Título "Preenchimento", mantido o Botão Voltar -->
+            <!-- CORREÇÃO AQUI: removida a classe 'hidden' -->
+            <div id="view-formulario" class="view-section">
                 <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom:20px;">
                     <button onclick="fecharFormulario()" class="btn-action btn-historico">
                         <span class="material-icons" style="font-size:18px;">arrow_back</span> Voltar
@@ -190,7 +188,7 @@
 
                 <div class="form-card">
                     <div class="form-header">
-                        <h2 id="titulo-formulario" style="color: var(--primary-color);">Novo Comunicado</h2>
+                        <h2 id="titulo-formulario" class="titulo-tela" style="color: var(--primary-color);">Novo Comunicado</h2>
                         <p>Preencha os dados abaixo para salvar no sistema.</p>
                     </div>
 
