@@ -75,15 +75,17 @@ body {
 }
 
 /* 6. FORMULÁRIOS E CARTÕES DE FILTRO */
+/* O .form-card perdeu o max-width para ocupar toda a largura tal como a tabela */
 .form-card {
     padding: 40px;
-    max-width: 1000px;
-    margin: 0 auto; /* Centraliza e limita a largura do formulário */
+    width: 100%;
+    max-width: none; 
+    margin: 0 auto;
 }
 
 .filtros-card {
     padding: 30px;
-    width: 100%; /* Garante a mesma largura idêntica à tabela */
+    width: 100%; 
     max-width: none; 
     margin: 0 0 25px 0 !important; /* Descola da tabela criando o espaçamento inferior */
 }
