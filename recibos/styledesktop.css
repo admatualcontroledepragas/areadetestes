@@ -44,12 +44,11 @@ body {
 /* =======================================================
    ABAS DE NAVEGAÇÃO (Imóveis / Veículos)
    ======================================================= */
-/* Cria o espaço para descolar as abas do cartão Total e centraliza no PC */
+/* Volta a ter 100% de largura, acompanhando a tabela e mantendo o espaço inferior */
 .dash-tabs {
     margin-bottom: 25px !important; 
-    max-width: 600px; 
-    margin-left: auto;
-    margin-right: auto;
+    width: 100%;
+    max-width: none;
 }
 
 /* 4. DASHBOARD E MÉTRICAS (Alinhamento em Linha) */
