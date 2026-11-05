@@ -1,4 +1,4 @@
-const CACHE_NAME = 'portal-atual-v62'; // Versão atualizada com módulo Orçamentos
+const CACHE_NAME = 'portal-atual-v63'; // Versão atualizada com módulo Orçamentos
 
 const urlsToCache = [
   // Ficheiros da Raiz (Portal)
