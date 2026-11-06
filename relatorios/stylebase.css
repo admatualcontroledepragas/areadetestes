@@ -91,9 +91,9 @@ body { background-color: var(--bg-body); color: var(--cor-texto); margin: 0; pad
 .styled-table tr:hover td { background-color: rgba(249, 250, 251, 0.5); }
 
 /* Regras para truncar textos longos nas células */
-.td-cliente { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: help; }
-.td-endereco { max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: help; }
-.td-servico { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: help; }
+.td-cliente { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.td-endereco { max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.td-servico { max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* Ícones de Ação Padronizados */
 .actions { display: flex; gap: 8px; align-items: center; justify-content: center; }
