@@ -16,8 +16,8 @@ let cacheDashboard = [];
 let cacheClientes = []; 
 let codigoParaExcluirTemp = null; 
 
-// Template de loading para usar dentro das tabelas
-const loaderHTML = '<tr><td colspan="7" style="text-align: center; color: #6b7280; padding: 25px;">A carregar dados... <div class="spinner" style="width: 18px; height: 18px; border-width: 3px; display: inline-block; vertical-align: middle; margin-left: 10px; margin-bottom: 0;"></div></td></tr>';
+// Template de loading para usar dentro das tabelas IDÊNTICO aos outros módulos
+const loaderHTML = '<tr><td colspan="7" style="text-align: center; color: #6b7280; padding: 25px;">Carregando dados... <div class="spinner" style="width: 18px; height: 18px; border-width: 3px; display: inline-block; vertical-align: middle; margin-left: 10px; margin-bottom: 0;"></div></td></tr>';
 
 window.onload = function() {
     usuarioLogadoNome = sessionStorage.getItem("nomeUsuario") || "Usuário";
@@ -139,6 +139,7 @@ function mudarAbaDashboard(tipo) {
        tabelaRecentesEl.classList.add(tipo === 'Imovel' ? 'modo-imovel' : 'modo-veiculo');
    }
    
+   // Injeta o spinner embutido imediatamente
    document.getElementById('tabelaRecentes').innerHTML = loaderHTML;
    document.getElementById('dashTotal').innerText = "...";
    
@@ -169,19 +170,20 @@ function carregarDashboard() {
                  if(!isNaN(d.getTime())) dataFormatada = d.toLocaleDateString('pt-BR', {timeZone: 'UTC'});
              }
 
-             let botoesHtml = "";
-             if (item.linkRel && String(item.linkRel).startsWith("http")) botoesHtml += `<a href="${item.linkRel}" target="_blank" class="btn-doc bg-relatorio">RELATÓRIO</a>`;
-             if (item.linkCert && String(item.linkCert).startsWith("http")) botoesHtml += `<a href="${item.linkCert}" target="_blank" class="btn-doc bg-certificado">CERTIFICADO</a>`;
-             if (botoesHtml === "") botoesHtml = "<span class='no-file'>--</span>";
+             // Botões convertidos para Ícones Padronizados
+             let botoesDocs = "";
+             if (item.linkRel && String(item.linkRel).startsWith("http")) botoesDocs += `<button type="button" class="icon-btn icon-pdf" onclick="window.open('${item.linkRel}', '_blank')" title="Ver Relatório"><span class="material-icons">description</span></button>`;
+             if (item.linkCert && String(item.linkCert).startsWith("http")) botoesDocs += `<button type="button" class="icon-btn icon-share" onclick="window.open('${item.linkCert}', '_blank')" title="Ver Certificado"><span class="material-icons">workspace_premium</span></button>`;
+             if (botoesDocs === "") botoesDocs = "<span class='no-file'>--</span>";
              
              const safeCodigo = item.codigo ? item.codigo : "";
              const codigoVisual = item.codigo ? item.codigo : "--";
 
              let botoesAcao = `
-               <button class="icon-btn icon-btn.edit btn-edit" onclick="prepararEdicao(${index}, 'dashboard')" title="Editar">
+               <button type="button" class="icon-btn icon-edit" onclick="prepararEdicao(${index}, 'dashboard')" title="Editar">
                    <span class="material-icons" style="font-size:18px;">edit</span>
                </button>
-               <button class="icon-btn icon-btn.delete btn-delete" onclick="confirmarExclusao('${safeCodigo}')" title="Excluir">
+               <button type="button" class="icon-btn icon-del" onclick="confirmarExclusao('${safeCodigo}')" title="Apagar">
                    <span class="material-icons" style="font-size:18px;">delete</span>
                </button>
              `;
@@ -193,18 +195,20 @@ function carregarDashboard() {
                 <td style="white-space: nowrap;">${dataFormatada}</td>
                 <td style="text-align: center; color: #1f2937;">${codigoVisual}</td>
                 <td style="text-align:center;">
-                    <div style="display:flex; gap:5px; justify-content:center;">${botoesHtml}</div>
+                    <div class="actions">${botoesDocs}</div>
                 </td>
-                <td class="actions" style="text-align:center; white-space:nowrap;">${botoesAcao}</td>
+                <td style="text-align:center;">
+                    <div class="actions">${botoesAcao}</div>
+                </td>
              `;
              tbody.appendChild(tr);
          });
        }
      } else {
-       tbody.innerHTML = `<tr><td colspan='7' style='color:red; text-align:center; padding:25px;'>Erro: ${dados.mensagem}</td></tr>`; 
+       tbody.innerHTML = `<tr><td colspan='7' style='color:var(--error-color); text-align:center; padding:25px;'>Erro: ${dados.mensagem}</td></tr>`; 
      }
    })
-   .catch(() => { tbody.innerHTML = "<tr><td colspan='7' style='color:red; text-align:center; padding:25px;'>Erro de conexão.</td></tr>"; });
+   .catch(() => { tbody.innerHTML = "<tr><td colspan='7' style='color:var(--error-color); text-align:center; padding:25px;'>Erro de conexão.</td></tr>"; });
 }
  
 // ==========================================
@@ -320,18 +324,18 @@ function carregarHistorico() {
              }
 
              let botoesDocs = "";
-             if (r.linkRel && String(r.linkRel).startsWith("http")) botoesDocs += `<a href="${r.linkRel}" target="_blank" class="btn-doc bg-relatorio" title="Abrir Relatório">RELATÓRIO</a>`;
-             if (r.linkCert && String(r.linkCert).startsWith("http")) botoesDocs += `<a href="${r.linkCert}" target="_blank" class="btn-doc bg-certificado" title="Abrir Certificado">CERTIFICADO</a>`;
+             if (r.linkRel && String(r.linkRel).startsWith("http")) botoesDocs += `<button type="button" class="icon-btn icon-pdf" onclick="window.open('${r.linkRel}', '_blank')" title="Ver Relatório"><span class="material-icons">description</span></button>`;
+             if (r.linkCert && String(r.linkCert).startsWith("http")) botoesDocs += `<button type="button" class="icon-btn icon-share" onclick="window.open('${r.linkCert}', '_blank')" title="Ver Certificado"><span class="material-icons">workspace_premium</span></button>`;
              if (botoesDocs === "") botoesDocs = "<span class='no-file'>--</span>";
              
              const safeCodigo = r.codigo ? r.codigo : "";
              const codigoVisual = r.codigo ? r.codigo : "--";
              
              let botoesAcao = `
-               <button class="icon-btn icon-btn.edit btn-edit" onclick="prepararEdicao(${index}, 'historico')" title="Editar">
+               <button type="button" class="icon-btn icon-edit" onclick="prepararEdicao(${index}, 'historico')" title="Editar">
                    <span class="material-icons" style="font-size:18px;">edit</span>
                </button>
-               <button class="icon-btn icon-btn.delete btn-delete" onclick="confirmarExclusao('${safeCodigo}')" title="Excluir">
+               <button type="button" class="icon-btn icon-del" onclick="confirmarExclusao('${safeCodigo}')" title="Apagar">
                    <span class="material-icons" style="font-size:18px;">delete</span>
                </button>
              `;
@@ -343,9 +347,11 @@ function carregarHistorico() {
                 <td class="td-servico" title="${r.servico || ''}">${r.servico}</td>
                 <td style="text-align: center; color: #1f2937;">${codigoVisual}</td>
                 <td style="text-align:center;">
-                    <div style="display:flex; gap:3px; justify-content:center;">${botoesDocs}</div>
+                    <div class="actions">${botoesDocs}</div>
                 </td>
-                <td class="actions" style="text-align:center; white-space:nowrap;">${botoesAcao}</td>
+                <td style="text-align:center;">
+                    <div class="actions">${botoesAcao}</div>
+                </td>
              `;
              tbody.appendChild(tr);
            });
@@ -354,10 +360,10 @@ function carregarHistorico() {
        document.getElementById('btnAnt').disabled = (dados.paginaAtual <= 1);
        document.getElementById('btnProx').disabled = (dados.paginaAtual >= dados.totalPaginas);
      } else {
-       tbody.innerHTML = `<tr><td colspan='7' style='color:red; text-align:center; padding:25px;'>Erro ao carregar.</td></tr>`; 
+       tbody.innerHTML = `<tr><td colspan='7' style='color:var(--error-color); text-align:center; padding:25px;'>Erro ao carregar.</td></tr>`; 
      }
    })
-   .catch(() => { tbody.innerHTML = `<tr><td colspan='7' style='color:red; text-align:center; padding:25px;'>Erro de conexão.</td></tr>`; });
+   .catch(() => { tbody.innerHTML = `<tr><td colspan='7' style='color:var(--error-color); text-align:center; padding:25px;'>Erro de conexão.</td></tr>`; });
 }
  
 // ==========================================
@@ -369,7 +375,7 @@ function confirmarExclusao(codigo) {
         return;
     }
     codigoParaExcluirTemp = codigo;
-    mostrarModal("Tem a certeza que deseja apagar definitivamente este registo?", "confirmacao", () => {
+    mostrarModal("Tem a certeza que deseja apagar definitivamente este registo e os seus ficheiros PDF?", "confirmacao", () => {
         realizarExclusaoDefinitiva();
     });
 }
@@ -379,7 +385,10 @@ function realizarExclusaoDefinitiva() {
     const codigoSeguro = codigoParaExcluirTemp;
     codigoParaExcluirTemp = null;
     
-    showToast("A apagar ficheiro...", "show");
+    // Mostra o modal de Salvando/Apagando
+    document.getElementById('modal-salvando').style.display = 'flex';
+    document.querySelector('#modal-salvando h3').innerText = "A apagar Registo...";
+    document.querySelector('#modal-salvando p').innerText = "Removendo PDFs e atualizando a base de dados.";
  
     fetch(URL_SCRIPT, { 
         method: "POST", 
@@ -387,6 +396,7 @@ function realizarExclusaoDefinitiva() {
     })
     .then(res => res.json())
     .then(ret => {
+       document.getElementById('modal-salvando').style.display = 'none';
        if(ret.status === "sucesso") {
          mostrarModal("Registo apagado com sucesso!", "alerta");
          carregarDashboard();
@@ -396,6 +406,7 @@ function realizarExclusaoDefinitiva() {
        }
     })
     .catch(() => {
+        document.getElementById('modal-salvando').style.display = 'none';
         mostrarModal("Erro de ligação ao tentar apagar.", "alerta");
     });
 }
@@ -577,6 +588,9 @@ document.getElementById("formulario").addEventListener("submit", function (e) {
     e.preventDefault();
     
     document.getElementById('view-formulario').classList.remove('active');
+    
+    document.querySelector('#modal-salvando h3').innerText = "A Salvar Registo...";
+    document.querySelector('#modal-salvando p').innerText = "Gerando PDFs e atualizando a base de dados.";
     document.getElementById('modal-salvando').style.display = 'flex';
     
     let garantiaTexto = (document.getElementById('selectGarantia').value === 'Outro') 
@@ -642,7 +656,7 @@ function carregarColaboradores() {
     })
     .catch(() => {
         const divCheck = document.getElementById('checkboxes');
-        divCheck.innerHTML = '<label style="color:red; padding:10px;">Erro ao carregar lista.</label>';
+        divCheck.innerHTML = '<label style="color:var(--error-color); padding:10px;">Erro ao carregar lista.</label>';
     });
 }
   
@@ -694,7 +708,7 @@ function abrirModalClientes() {
       document.getElementById('buscaCliente').value = '';
       
       const divLista = document.getElementById('listaClientes');
-      divLista.innerHTML = '<div style="padding:20px; text-align:center; color:#666;">A carregar...</div>';
+      divLista.innerHTML = '<div style="padding:20px; text-align:center; color:#6b7280;">A carregar...</div>';
       
       fetch(URL_SCRIPT, { method: "POST", body: JSON.stringify({ acao: "listarClientes" }) })
       .then(res => res.json())
@@ -703,11 +717,11 @@ function abrirModalClientes() {
               cacheClientes = ret.dados;
               renderizarListaClientes(cacheClientes.slice(0, 10));
           } else {
-              divLista.innerHTML = '<div style="padding:10px; color:red; text-align:center;">Erro ao carregar lista.</div>';
+              divLista.innerHTML = '<div style="padding:10px; color:var(--error-color); text-align:center;">Erro ao carregar lista.</div>';
           }
       })
       .catch(() => {
-          divLista.innerHTML = '<div style="padding:10px; color:red; text-align:center;">Erro de conexão.</div>';
+          divLista.innerHTML = '<div style="padding:10px; color:var(--error-color); text-align:center;">Erro de conexão.</div>';
       });
 }
 
