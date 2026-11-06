@@ -146,10 +146,16 @@
                   <label class="title-label" style="font-size: 11px; text-transform: uppercase;">Data Final</label>
                   <input type="date" id="filtroDataFim" class="form-input">
                 </div>
-            </div>
-            <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 15px;">
-                <button class="btn-action btn-historico" onclick="limparFiltros()"><span class="material-icons" style="font-size:18px;">clear_all</span> Limpar</button>
-                <button class="btn-action btn-novo" onclick="paginaAtual=1; carregarHistorico()"><span class="material-icons" style="font-size:18px;">search</span> Buscar</button>
+                
+                <!-- BOTÕES MOVIDOS PARA DENTRO DO GRID (3ª Coluna) -->
+                <div style="display: flex; gap: 10px; margin-bottom: 10px; height: 43px;">
+                    <button class="btn-action btn-historico" onclick="limparFiltros()" style="flex: 1; margin: 0; justify-content: center;">
+                        <span class="material-icons" style="font-size:18px;">clear_all</span> Limpar
+                    </button>
+                    <button class="btn-action btn-novo" onclick="paginaAtual=1; carregarHistorico()" style="flex: 1; margin: 0; justify-content: center;">
+                        <span class="material-icons" style="font-size:18px;">search</span> Buscar
+                    </button>
+                </div>
             </div>
         </div>
         
