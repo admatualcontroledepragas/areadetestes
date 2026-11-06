@@ -16,7 +16,7 @@ let cacheDashboard = [];
 let cacheClientes = []; 
 let codigoParaExcluirTemp = null; 
 
-// Template de loading para usar dentro das tabelas IDÊNTICO aos outros módulos
+// Template de loading para usar dentro das tabelas
 const loaderHTML = '<tr><td colspan="7" style="text-align: center; color: #6b7280; padding: 25px;">Carregando dados... <div class="spinner" style="width: 18px; height: 18px; border-width: 3px; display: inline-block; vertical-align: middle; margin-left: 10px; margin-bottom: 0;"></div></td></tr>';
 
 window.onload = function() {
@@ -117,9 +117,54 @@ function fazerLogout() {
   window.location.href = "../index.html";
 }
 
+// ================================
+// NAVEGAÇÃO SPA (VIEWS)
+// ================================
+function mostrarView(viewId) {
+    document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
+    document.getElementById(viewId).classList.add('active');
+    window.scrollTo(0, 0);
+}
+
 // ==========================================
-// DASHBOARD
+// DASHBOARD E HISTÓRICO 
 // ==========================================
+function abrirHistorico() {
+    mostrarView('view-historico');
+    
+    document.getElementById('tabHistImovel').className = tipoServicoAtual === 'Imovel' ? 'tab-btn active' : 'tab-btn';
+    document.getElementById('tabHistVeiculo').className = tipoServicoAtual === 'Veiculo' ? 'tab-btn active' : 'tab-btn';
+    
+    const thHist = document.getElementById('thIdentificacao');
+    if(thHist) thHist.innerText = (tipoServicoAtual === 'Imovel' ? 'Endereço' : 'Placa');
+    
+    const tabelaHistEl = document.querySelector('#view-historico .styled-table');
+    if(tabelaHistEl) {
+        tabelaHistEl.classList.remove('modo-imovel', 'modo-veiculo');
+        tabelaHistEl.classList.add(tipoServicoAtual === 'Imovel' ? 'modo-imovel' : 'modo-veiculo');
+    }
+    
+    if (tipoServicoAtual === 'Veiculo') {
+        document.getElementById('containerFiltroPlaca').style.display = 'block';
+        document.getElementById('containerFiltroEndereco').style.display = 'none'; 
+    } else {
+        document.getElementById('containerFiltroPlaca').style.display = 'none';
+        document.getElementById('containerFiltroEndereco').style.display = 'block'; 
+    }
+    paginaAtual = 1;
+    limparFiltros(false); 
+    carregarHistorico();
+}
+  
+function fecharHistorico() {
+    mostrarView('view-dashboard');
+    mudarAbaDashboard(tipoServicoAtual); 
+}
+
+function abrirModalSelecao() { 
+    document.getElementById('modal-selecao').style.display = 'flex'; 
+}
+
 function mudarAbaDashboard(tipo) {
    tipoServicoAtual = tipo;
    
@@ -128,18 +173,15 @@ function mudarAbaDashboard(tipo) {
    
    document.getElementById('lblTotal').innerText = tipo === 'Imovel' ? 'Total de Imóveis' : 'Total de Veículos';
    
-   // Ajusta dinamicamente o título da segunda coluna (Endereço / Placa)
    const thRecentes = document.querySelector('#view-dashboard th:nth-child(2)');
    if(thRecentes) thRecentes.innerText = (tipo === 'Imovel' ? 'Endereço' : 'Placa');
 
-   // Ajusta a classe CSS para o telemóvel saber qual rótulo aplicar via CSS
    const tabelaRecentesEl = document.querySelector('#view-dashboard .styled-table');
    if(tabelaRecentesEl) {
        tabelaRecentesEl.classList.remove('modo-imovel', 'modo-veiculo');
        tabelaRecentesEl.classList.add(tipo === 'Imovel' ? 'modo-imovel' : 'modo-veiculo');
    }
    
-   // Injeta o spinner embutido imediatamente
    document.getElementById('tabelaRecentes').innerHTML = loaderHTML;
    document.getElementById('dashTotal').innerText = "...";
    
@@ -170,7 +212,6 @@ function carregarDashboard() {
                  if(!isNaN(d.getTime())) dataFormatada = d.toLocaleDateString('pt-BR', {timeZone: 'UTC'});
              }
 
-             // Botões convertidos para Ícones Padronizados
              let botoesDocs = "";
              if (item.linkRel && String(item.linkRel).startsWith("http")) botoesDocs += `<button type="button" class="icon-btn icon-pdf" onclick="window.open('${item.linkRel}', '_blank')" title="Ver Relatório"><span class="material-icons">description</span></button>`;
              if (item.linkCert && String(item.linkCert).startsWith("http")) botoesDocs += `<button type="button" class="icon-btn icon-share" onclick="window.open('${item.linkCert}', '_blank')" title="Ver Certificado"><span class="material-icons">workspace_premium</span></button>`;
@@ -211,44 +252,6 @@ function carregarDashboard() {
    .catch(() => { tbody.innerHTML = "<tr><td colspan='7' style='color:var(--error-color); text-align:center; padding:25px;'>Erro de conexão.</td></tr>"; });
 }
  
-// ==========================================
-// HISTÓRICO
-// ==========================================
-function abrirHistorico() {
-   document.getElementById('view-dashboard').classList.remove('active');
-   document.getElementById('view-historico').classList.add('active');
-   
-   document.getElementById('tabHistImovel').className = tipoServicoAtual === 'Imovel' ? 'tab-btn active' : 'tab-btn';
-   document.getElementById('tabHistVeiculo').className = tipoServicoAtual === 'Veiculo' ? 'tab-btn active' : 'tab-btn';
-   
-   const thHist = document.getElementById('thIdentificacao');
-   if(thHist) thHist.innerText = (tipoServicoAtual === 'Imovel' ? 'Endereço' : 'Placa');
-   
-   const tabelaHistEl = document.querySelector('#view-historico .styled-table');
-   if(tabelaHistEl) {
-       tabelaHistEl.classList.remove('modo-imovel', 'modo-veiculo');
-       tabelaHistEl.classList.add(tipoServicoAtual === 'Imovel' ? 'modo-imovel' : 'modo-veiculo');
-   }
-   
-   if (tipoServicoAtual === 'Veiculo') {
-       document.getElementById('containerFiltroPlaca').style.display = 'block';
-       document.getElementById('containerFiltroEndereco').style.display = 'none'; 
-   } else {
-       document.getElementById('containerFiltroPlaca').style.display = 'none';
-       document.getElementById('containerFiltroEndereco').style.display = 'block'; 
-   }
-   window.scrollTo(0,0);
-   paginaAtual = 1;
-   limparFiltros(false); 
-   carregarHistorico();
-}
- 
-function fecharHistorico() {
-   document.getElementById('view-historico').classList.remove('active');
-   document.getElementById('view-dashboard').classList.add('active');
-   mudarAbaDashboard(tipoServicoAtual); 
-}
-
 function mudarAbaHistorico(tipo) {
    tipoServicoAtual = tipo;
    document.getElementById('tabHistImovel').className = tipo === 'Imovel' ? 'tab-btn active' : 'tab-btn';
@@ -385,15 +388,11 @@ function realizarExclusaoDefinitiva() {
     const codigoSeguro = codigoParaExcluirTemp;
     codigoParaExcluirTemp = null;
     
-    // Mostra o modal de Salvando/Apagando
     document.getElementById('modal-salvando').style.display = 'flex';
     document.querySelector('#modal-salvando h3').innerText = "A apagar Registo...";
     document.querySelector('#modal-salvando p').innerText = "Removendo PDFs e atualizando a base de dados.";
  
-    fetch(URL_SCRIPT, { 
-        method: "POST", 
-        body: JSON.stringify({ acao: "excluir", tipo: tipoServicoAtual, codigo: codigoSeguro }) 
-    })
+    fetch(URL_SCRIPT, { method: "POST", body: JSON.stringify({ acao: "excluir", tipo: tipoServicoAtual, codigo: codigoSeguro }) })
     .then(res => res.json())
     .then(ret => {
        document.getElementById('modal-salvando').style.display = 'none';
@@ -424,9 +423,7 @@ function prepararEdicao(index, origem = 'historico') {
 
     document.getElementById('tituloFormulario').innerText = "Editando Registo";
     document.getElementById('modal-selecao').style.display = 'none';
-    document.getElementById('view-dashboard').classList.remove('active');
-    document.getElementById('view-historico').classList.remove('active');
-    document.getElementById('view-formulario').classList.add('active');
+    mostrarView('view-formulario');
     
     if(document.getElementById('btnImportarCliente')) document.getElementById('btnImportarCliente').style.display = 'none';
 
@@ -490,10 +487,6 @@ function prepararEdicao(index, origem = 'historico') {
     calcularValidade();
 }
  
-function abrirModalSelecao() { 
-    document.getElementById('modal-selecao').style.display = 'flex'; 
-}
-
 function handleInputPlaca(e) { 
     if(tipoServicoAtual === 'Veiculo') { e.target.value = e.target.value.toUpperCase(); } 
 }
@@ -553,25 +546,16 @@ function iniciarRegistro(tipo) {
         } catch(e) {}
     }
 
-    document.getElementById('view-dashboard').classList.remove('active');
-    document.getElementById('view-historico').classList.remove('active'); 
-    document.getElementById('view-formulario').classList.add('active');
-    window.scrollTo(0,0);
+    mostrarView('view-formulario');
     calcularValidade(); 
 }
  
 function fecharFormulario() {
     limparRascunho(); 
-    
     document.getElementById('formulario').reset();
-    document.getElementById('view-formulario').classList.remove('active');
-    document.getElementById('view-historico').classList.remove('active');
-    document.getElementById('view-dashboard').classList.add('active');
-    window.scrollTo(0, 0);
-    
+    mostrarView('view-dashboard');
     modoEdicao = false; 
     codigoEdicao = null;
-    
     mudarAbaDashboard(tipoServicoAtual);
 }
  
