@@ -699,7 +699,7 @@ function abrirModalClientes() {
       document.getElementById('buscaCliente').value = '';
       
       const divLista = document.getElementById('listaClientes');
-      divLista.innerHTML = '<div style="padding:20px; text-align:center; color:#6b7280;">A carregar...</div>';
+      divLista.innerHTML = '<div style="padding:20px; text-align:center; color:#6b7280;">Carregando...</div>';
       
       fetch(URL_SCRIPT, { method: "POST", body: JSON.stringify({ acao: "listarClientes" }) })
       .then(res => res.json())
