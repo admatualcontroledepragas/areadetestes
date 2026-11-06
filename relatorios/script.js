@@ -677,7 +677,14 @@ function criarOpcao(val, txt, id, isOutro) {
       });
       lbl.appendChild(chk); lbl.appendChild(document.createTextNode(txt)); div.appendChild(lbl);
 }
-document.addEventListener('click', function(e) { const ms = document.querySelector('.multiselect'); if (!ms.contains(e.target)) document.getElementById('checkboxes').style.display = 'none'; });
+document.addEventListener('click', function(e) { 
+    const ms = document.querySelector('.multiselect'); 
+    const cb = document.getElementById('checkboxes');
+    // Verifica se os elementos existem na tela antes de tentar fechá-los
+    if (ms && cb && !ms.contains(e.target)) {
+        cb.style.display = 'none'; 
+    }
+});
 
 // ==========================================
 // IMPORTAÇÃO DE CLIENTES
