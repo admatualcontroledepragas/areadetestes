@@ -118,23 +118,24 @@ body {
 }
 
 /* Centraliza a célula de Ações e a de Docs (as duas últimas colunas) */
+/* Agora com 120px porque os botões de texto gigantes viraram ícones compactos */
 .styled-table th:nth-last-child(1), 
 .styled-table td:nth-last-child(1) {
     text-align: center !important; 
     vertical-align: middle !important; 
-    width: 110px !important; 
-    min-width: 110px !important;
+    width: 120px !important; 
+    min-width: 120px !important;
 }
 
 .styled-table th:nth-last-child(2), 
 .styled-table td:nth-last-child(2) {
     text-align: center !important; 
     vertical-align: middle !important; 
-    width: 220px !important; 
-    min-width: 220px !important;
+    width: 120px !important; 
+    min-width: 120px !important;
 }
 
-/* Mantém os ícones e os botões de DOCS alinhados na horizontal sem quebrar linha */
+/* Mantém os ícones alinhados na horizontal sem quebrar linha */
 .styled-table td .actions, 
 .styled-table td > div {
     display: flex !important;
