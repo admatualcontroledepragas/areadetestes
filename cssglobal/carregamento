@@ -1,0 +1,18 @@
+/* =======================================================
+   LOADER EM LINHA (Para Tabelas e Listas)
+   ======================================================= */
+.spinner-inline {
+    width: 18px;
+    height: 18px;
+    border-width: 3px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 10px;
+    margin-bottom: 0;
+}
+
+.loader-tabela-texto {
+    text-align: center; 
+    color: var(--cor-texto-secundario); 
+    padding: 25px;
+}
