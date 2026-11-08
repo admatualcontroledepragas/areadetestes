@@ -1,4 +1,4 @@
-const CACHE_NAME = 'portal-atual-v91'; // Versão atualizada com módulo Orçamentos
+const CACHE_NAME = 'portal-atual-v92'; // Versão atualizada com módulo Orçamentos
 
 const urlsToCache = [
   // Ficheiros da Raiz (Portal)
@@ -12,7 +12,9 @@ const urlsToCache = [
   './recibos/stylebase.css',
   './recibos/stylemobile.css',
   './recibos/styledesktop.css',
-  './recibos/script.js',
+  './recibos/script-utils.js',
+  './recibos/script-ui.js',
+  './recibos/script-api.js',
 
   // Módulo: Relatórios e Certificados
   './relatorios/index.html',
