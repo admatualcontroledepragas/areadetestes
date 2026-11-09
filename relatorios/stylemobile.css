@@ -11,6 +11,7 @@ body {
     width: 100%;
     max-width: 100%;
     margin: 0 auto;
+    overflow-x: hidden;
 }
 
 /* 1. CABEÇALHO E NAVBAR */
@@ -98,14 +99,28 @@ body {
 }
 
 /* 4. TABELAS TRANSFORMADAS EM CARTÕES (MOBILE) */
-.content { padding: 10px; padding-bottom: 80px; overflow-x: hidden; }
+.content { 
+    padding: 10px; 
+    padding-bottom: 80px; 
+}
+
 .table-container { 
     background: transparent; 
     border: none; 
     box-shadow: none; 
     padding: 0; 
-    width: 100%; /* Corrigido de max-width: 100vw que empurrava a tela */
+    width: 100%;
     box-sizing: border-box;
+}
+
+/* MATA A BARRA DE ROLAGEM INVISÍVEL CRIADA PELO HTML DO DESKTOP */
+.table-container > div {
+    overflow-x: visible !important;
+}
+
+.styled-table {
+    min-width: 0 !important;
+    width: 100% !important;
 }
 
 .styled-table, .styled-table thead, .styled-table tbody, .styled-table th, .styled-table td, .styled-table tr {
@@ -126,23 +141,33 @@ body {
     padding: 15px;
     width: 100%;
     box-sizing: border-box;
-    overflow: hidden; /* Força o card a respeitar as bordas */
 }
 
-.styled-table td {
+/* PROTEGE A LINHA DE CARREGAMENTO PARA NÃO SER DEFORMADA */
+.styled-table td[colspan] {
+    display: block !important;
+    width: 100% !important;
+    text-align: center !important;
+    padding: 25px 10px !important;
+}
+.styled-table td[colspan]::before {
+    display: none !important;
+}
+
+.styled-table td:not([colspan]) {
     border: none;
     border-bottom: 1px solid #f3f4f6;
     position: relative;
     padding: 12px 0 !important;
     display: grid !important;
-    /* O minmax(0, 1fr) é a MÁGICA que impede um texto longo de destruir a largura do ecrã */
     grid-template-columns: 80px minmax(0, 1fr) !important;
     align-items: center !important;
     text-align: left !important;
     gap: 15px !important;
-    white-space: normal !important;
-    max-width: 100% !important;
-    word-break: break-word; 
+    width: 100% !important;
+    box-sizing: border-box !important;
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important; 
 }
 
 /* Rótulos Padronizados */
@@ -153,7 +178,7 @@ body {
     text-transform: uppercase;
 }
 
-/* Mapeamento de Colunas Padrão (Endereço FIXO como padrão para os dados não saltarem de lugar) */
+/* Mapeamento de Colunas Padrão */
 .styled-table td:nth-of-type(1)::before { content: "Cliente"; }
 .styled-table td:nth-of-type(2)::before { content: "Endereço"; }
 .styled-table td:nth-of-type(3)::before { content: "Serviço"; }
@@ -168,19 +193,20 @@ body {
 #view-historico .styled-table td:nth-of-type(4)::before { content: "Serviço"; }
 
 /* ======================================================
-   AÇÕES E DOCS NA MESMA LINHA E REMOÇÃO AGRESSIVA DE RÓTULOS
+   AÇÕES E DOCS 100% EMPILHADOS PARA GARANTIR ENCAIXE
    ====================================================== */
 .styled-table td:nth-of-type(6),
 .styled-table td:nth-of-type(7) {
     border-bottom: none !important;
-    display: block !important;
-    float: left !important; /* Float left resolve o overflow que o inline-flex criava */
-    width: 50% !important; 
-    padding: 15px 0 5px 0 !important;
+    display: flex !important; 
+    width: 100% !important; 
+    padding: 10px 0 !important;
+    justify-content: center !important;
+    align-items: center !important;
     box-sizing: border-box !important;
 }
 
-/* Garante que o texto lateral não aparece nas colunas de botões */
+/* Remove textos da lateral */
 .styled-table td:nth-of-type(6)::before,
 .styled-table td:nth-of-type(7)::before {
     display: none !important;
@@ -193,9 +219,8 @@ body {
     justify-content: center !important;
     align-items: center !important;
     width: 100% !important;
-    gap: 10px !important;
+    gap: 15px !important;
     margin: 0 !important;
-    flex-wrap: nowrap !important; 
 }
 
 /* 5. AJUSTES DOS MODAIS PARA ECRÃS PEQUENOS */
