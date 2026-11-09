@@ -3,23 +3,14 @@
    (Estrutura, Espaçamentos e Layout para Ecrãs até 1024px)
    ======================================================= */
 
-/* GARANTIA MÁXIMA DE NÃO ULTRAPASSAR A TELA */
-html, body {
-    overflow-x: hidden !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-}
-
 body {
     padding-bottom: 20px;
 }
 
 #app-container {
-    width: 100% !important;
-    max-width: 100% !important;
+    width: 100%;
+    max-width: 100%;
     margin: 0 auto;
-    box-sizing: border-box !important;
 }
 
 /* 1. CABEÇALHO E NAVBAR */
@@ -28,8 +19,6 @@ body {
     align-items: flex-start; 
     gap: 10px; 
     padding: 15px; 
-    width: 100% !important;
-    box-sizing: border-box !important;
 }
 .navbar div { 
     width: 100%; 
@@ -56,8 +45,6 @@ body {
 }
 .filtros-card {
     padding: 15px;
-    width: 100% !important;
-    box-sizing: border-box !important;
 }
 .filter-buttons-container { 
     flex-direction: column; 
@@ -85,8 +72,6 @@ body {
     border-radius: 12px; 
     box-shadow: none; 
     border: 1px solid var(--cor-borda); 
-    width: 100% !important;
-    box-sizing: border-box !important;
 }
 
 .input-group-row, .time-group { 
@@ -113,29 +98,21 @@ body {
 }
 
 /* 4. TABELAS TRANSFORMADAS EM CARTÕES (MOBILE) */
-.content { 
-    padding: 10px; 
-    padding-bottom: 80px; 
-    overflow-x: hidden !important; 
-    width: 100% !important;
-    box-sizing: border-box !important;
-}
+.content { padding: 10px; padding-bottom: 80px; overflow-x: hidden; }
+
 .table-container { 
     background: transparent; 
     border: none; 
     box-shadow: none; 
     padding: 0; 
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-/* MATA O MIN-WIDTH DO DESKTOP */
+/* CORREÇÃO CIRÚRGICA 1: Anula os 700px do desktop */
 .styled-table {
     min-width: 0 !important;
     width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
 }
 
 .styled-table, .styled-table thead, .styled-table tbody, .styled-table th, .styled-table td, .styled-table tr {
@@ -147,7 +124,6 @@ body {
     left: -9999px;
 }
 
-/* BLINDAGEM DO CARD (NÃO DEIXA NADA PASSAR DA BORDA) */
 .styled-table tr {
     background: white;
     border-radius: 12px;
@@ -155,10 +131,8 @@ body {
     margin-bottom: 15px;
     border: 1px solid var(--cor-borda);
     padding: 15px;
-    width: 100% !important;
-    max-width: 100% !important;
-    box-sizing: border-box !important;
-    overflow: hidden !important; 
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .styled-table td {
@@ -167,16 +141,14 @@ body {
     position: relative;
     padding: 12px 0 !important;
     display: grid !important;
+    /* CORREÇÃO CIRÚRGICA 2: minmax(0,1fr) evita que textos quebrem a tela */
     grid-template-columns: 80px minmax(0, 1fr) !important;
     align-items: center !important;
     text-align: left !important;
     gap: 15px !important;
     white-space: normal !important;
-    width: 100% !important;
     max-width: 100% !important;
-    box-sizing: border-box !important;
-    overflow-wrap: anywhere !important; /* CORTA PALAVRAS GIGANTES QUE EMPURREM A TELA */
-    word-break: break-word !important;
+    word-break: break-word; 
 }
 
 /* Rótulos Padronizados */
@@ -187,7 +159,7 @@ body {
     text-transform: uppercase;
 }
 
-/* Mapeamento de Colunas Padrão */
+/* CORREÇÃO CIRÚRGICA 3: Endereço fixado, não depende mais da classe JS */
 .styled-table td:nth-of-type(1)::before { content: "Cliente"; }
 .styled-table td:nth-of-type(2)::before { content: "Endereço"; }
 .styled-table td:nth-of-type(3)::before { content: "Serviço"; }
@@ -202,20 +174,21 @@ body {
 #view-historico .styled-table td:nth-of-type(4)::before { content: "Serviço"; }
 
 /* ======================================================
-   AÇÕES E DOCS NA MESMA LINHA E REMOÇÃO AGRESSIVA DE RÓTULOS
+   AÇÕES E DOCS NA MESMA LINHA
    ====================================================== */
 .styled-table td:nth-of-type(6),
 .styled-table td:nth-of-type(7) {
     border-bottom: none !important;
     display: inline-flex !important;
-    float: left !important;
-    width: 50% !important; 
+    /* CORREÇÃO CIRÚRGICA 4: 48% impede que espaços em branco empurrem o card */
+    width: 48% !important; 
     padding: 15px 0 5px 0 !important;
-    box-sizing: border-box !important;
     justify-content: center !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
 }
 
-/* Garante que o texto lateral não aparece nas colunas de botões */
+/* Remove textos da lateral (Ações e Docs) */
 .styled-table td:nth-of-type(6)::before,
 .styled-table td:nth-of-type(7)::before {
     display: none !important;
@@ -227,20 +200,22 @@ body {
     flex-direction: row !important;
     justify-content: center !important;
     align-items: center !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    gap: 8px !important;
+    width: auto !important;
+    gap: 10px !important;
     margin: 0 !important;
-    flex-wrap: wrap !important; /* SE OS BOTÕES FOREM MUITO GRANDES, ELES SE ADAPTAM SEM EMPURRAR A TELA */
+    flex-wrap: wrap !important; 
+}
+
+.icon-btn {
+    padding: 10px !important;
+    background-color: #f8fafc;
 }
 
 /* 5. AJUSTES DOS MODAIS PARA ECRÃS PEQUENOS */
 .modal-box {
-    width: 95% !important;
-    max-width: 100% !important;
+    width: 95%;
     max-height: 85vh;
     padding: 20px;
-    box-sizing: border-box !important;
 }
 .modal-overlay { 
     padding-top: 40px; 
@@ -251,6 +226,12 @@ body {
 }
 .modal-actions button {
     width: 100%;
+}
+
+/* 6. CORREÇÃO DE LARGURA E ZOOM FORÇADO NO MOBILE */
+body, html {
+    overflow-x: hidden;
+    max-width: 100vw;
 }
 
 /* O iOS dá zoom automático se a fonte do input for menor que 16px */
