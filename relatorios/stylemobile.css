@@ -104,7 +104,8 @@ body {
     border: none; 
     box-shadow: none; 
     padding: 0; 
-    max-width: 100vw;
+    width: 100%; /* Corrigido de max-width: 100vw que empurrava a tela */
+    box-sizing: border-box;
 }
 
 .styled-table, .styled-table thead, .styled-table tbody, .styled-table th, .styled-table td, .styled-table tr {
@@ -124,8 +125,8 @@ body {
     border: 1px solid var(--cor-borda);
     padding: 15px;
     width: 100%;
-    max-width: 100%; /* Força o card a nunca passar da tela */
     box-sizing: border-box;
+    overflow: hidden; /* Força o card a respeitar as bordas */
 }
 
 .styled-table td {
@@ -134,13 +135,14 @@ body {
     position: relative;
     padding: 12px 0 !important;
     display: grid !important;
-    grid-template-columns: 80px 1fr !important;
+    /* O minmax(0, 1fr) é a MÁGICA que impede um texto longo de destruir a largura do ecrã */
+    grid-template-columns: 80px minmax(0, 1fr) !important;
     align-items: center !important;
     text-align: left !important;
     gap: 15px !important;
     white-space: normal !important;
     max-width: 100% !important;
-    word-break: break-word; /* Quebra palavras muito longas que alargam o card */
+    word-break: break-word; 
 }
 
 /* Rótulos Padronizados */
@@ -151,14 +153,14 @@ body {
     text-transform: uppercase;
 }
 
-/* Mapeamento de Colunas Padrão */
+/* Mapeamento de Colunas Padrão (Endereço FIXO como padrão para os dados não saltarem de lugar) */
 .styled-table td:nth-of-type(1)::before { content: "Cliente"; }
+.styled-table td:nth-of-type(2)::before { content: "Endereço"; }
 .styled-table td:nth-of-type(3)::before { content: "Serviço"; }
 .styled-table td:nth-of-type(4)::before { content: "Data"; }
 .styled-table td:nth-of-type(5)::before { content: "Código"; }
 
-/* Alternância dinâmica de Endereço/Placa */
-.modo-imovel td:nth-of-type(2)::before { content: "Endereço"; }
+/* Alternância dinâmica apenas para a Placa */
 .modo-veiculo td:nth-of-type(2)::before { content: "Placa"; }
 
 /* Histórico tem ordem de colunas diferente (Data / Serviço) */
@@ -171,36 +173,29 @@ body {
 .styled-table td:nth-of-type(6),
 .styled-table td:nth-of-type(7) {
     border-bottom: none !important;
-    display: inline-flex !important;
-    width: 50% !important; /* Ocupam exatamente metade do espaço cada */
+    display: block !important;
+    float: left !important; /* Float left resolve o overflow que o inline-flex criava */
+    width: 50% !important; 
     padding: 15px 0 5px 0 !important;
-    justify-content: center !important;
-    align-items: center !important;
     box-sizing: border-box !important;
 }
 
-/* Garante que o texto lateral não aparece de jeito nenhum nas duas últimas colunas */
+/* Garante que o texto lateral não aparece nas colunas de botões */
 .styled-table td:nth-of-type(6)::before,
 .styled-table td:nth-of-type(7)::before {
     display: none !important;
     content: none !important;
 }
 
-.styled-table td .actions,
-.styled-table td > div {
+.styled-table td .actions {
     display: flex !important;
     flex-direction: row !important;
     justify-content: center !important;
     align-items: center !important;
-    width: auto !important;
+    width: 100% !important;
     gap: 10px !important;
     margin: 0 !important;
     flex-wrap: nowrap !important; 
-}
-
-.icon-btn {
-    padding: 10px !important;
-    background-color: #f8fafc;
 }
 
 /* 5. AJUSTES DOS MODAIS PARA ECRÃS PEQUENOS */
