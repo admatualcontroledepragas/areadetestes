@@ -175,7 +175,7 @@ body { background-color: var(--bg-body); color: var(--cor-texto); margin: 0; pad
 .btn-danger { background-color: var(--error-color); color: white; border: none; padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; }
 .btn-danger:hover { background-color: #dc2626; }
 
-.btn-opcao { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; padding: 16px; margin: 12px 0; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; color: white; }
+.btn-opcao { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; padding: 16px; margin: 0; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; color: white; }
 .btn-imovel { background: linear-gradient(135deg, #004481 0%, #003366 100%); }
 .btn-imovel:hover { opacity: 0.95; transform: translateY(-1px); }
 .btn-veiculo { background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); }
