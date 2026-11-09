@@ -11,7 +11,6 @@ body {
     width: 100%;
     max-width: 100%;
     margin: 0 auto;
-    overflow-x: hidden;
 }
 
 /* 1. CABEÇALHO E NAVBAR */
@@ -99,10 +98,7 @@ body {
 }
 
 /* 4. TABELAS TRANSFORMADAS EM CARTÕES (MOBILE) */
-.content { 
-    padding: 10px; 
-    padding-bottom: 80px; 
-}
+.content { padding: 10px; padding-bottom: 80px; overflow-x: hidden; }
 
 .table-container { 
     background: transparent; 
@@ -113,11 +109,7 @@ body {
     box-sizing: border-box;
 }
 
-/* MATA A BARRA DE ROLAGEM INVISÍVEL CRIADA PELO HTML DO DESKTOP */
-.table-container > div {
-    overflow-x: visible !important;
-}
-
+/* CORREÇÃO CIRÚRGICA 1: Anula os 700px do desktop */
 .styled-table {
     min-width: 0 !important;
     width: 100% !important;
@@ -143,31 +135,20 @@ body {
     box-sizing: border-box;
 }
 
-/* PROTEGE A LINHA DE CARREGAMENTO PARA NÃO SER DEFORMADA */
-.styled-table td[colspan] {
-    display: block !important;
-    width: 100% !important;
-    text-align: center !important;
-    padding: 25px 10px !important;
-}
-.styled-table td[colspan]::before {
-    display: none !important;
-}
-
-.styled-table td:not([colspan]) {
+.styled-table td {
     border: none;
     border-bottom: 1px solid #f3f4f6;
     position: relative;
     padding: 12px 0 !important;
     display: grid !important;
+    /* CORREÇÃO CIRÚRGICA 2: minmax(0,1fr) evita que textos quebrem a tela */
     grid-template-columns: 80px minmax(0, 1fr) !important;
     align-items: center !important;
     text-align: left !important;
     gap: 15px !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    word-wrap: break-word !important;
-    overflow-wrap: break-word !important; 
+    white-space: normal !important;
+    max-width: 100% !important;
+    word-break: break-word; 
 }
 
 /* Rótulos Padronizados */
@@ -178,7 +159,7 @@ body {
     text-transform: uppercase;
 }
 
-/* Mapeamento de Colunas Padrão */
+/* CORREÇÃO CIRÚRGICA 3: Endereço fixado, não depende mais da classe JS */
 .styled-table td:nth-of-type(1)::before { content: "Cliente"; }
 .styled-table td:nth-of-type(2)::before { content: "Endereço"; }
 .styled-table td:nth-of-type(3)::before { content: "Serviço"; }
@@ -193,20 +174,21 @@ body {
 #view-historico .styled-table td:nth-of-type(4)::before { content: "Serviço"; }
 
 /* ======================================================
-   AÇÕES E DOCS 100% EMPILHADOS PARA GARANTIR ENCAIXE
+   AÇÕES E DOCS NA MESMA LINHA
    ====================================================== */
 .styled-table td:nth-of-type(6),
 .styled-table td:nth-of-type(7) {
     border-bottom: none !important;
-    display: flex !important; 
-    width: 100% !important; 
-    padding: 10px 0 !important;
+    display: inline-flex !important;
+    /* CORREÇÃO CIRÚRGICA 4: 48% impede que espaços em branco empurrem o card */
+    width: 48% !important; 
+    padding: 15px 0 5px 0 !important;
     justify-content: center !important;
     align-items: center !important;
     box-sizing: border-box !important;
 }
 
-/* Remove textos da lateral */
+/* Remove textos da lateral (Ações e Docs) */
 .styled-table td:nth-of-type(6)::before,
 .styled-table td:nth-of-type(7)::before {
     display: none !important;
@@ -218,9 +200,15 @@ body {
     flex-direction: row !important;
     justify-content: center !important;
     align-items: center !important;
-    width: 100% !important;
-    gap: 15px !important;
+    width: auto !important;
+    gap: 10px !important;
     margin: 0 !important;
+    flex-wrap: wrap !important; 
+}
+
+.icon-btn {
+    padding: 10px !important;
+    background-color: #f8fafc;
 }
 
 /* 5. AJUSTES DOS MODAIS PARA ECRÃS PEQUENOS */
