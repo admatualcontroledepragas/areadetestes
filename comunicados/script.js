@@ -25,7 +25,7 @@ const memoriaPragas = { 1: [], 2: [], 3: [] };
 const memoriaPragasOutrosTxt = { 1: "", 2: "", 3: "" };
 
 // Template de loading para usar dentro das tabelas
-const loaderHTML = '<tr><td colspan="4" style="text-align: center; color: #6b7280; padding: 25px;">A carregar dados... <div class="spinner" style="width: 18px; height: 18px; border-width: 3px; display: inline-block; vertical-align: middle; margin-left: 10px; margin-bottom: 0;"></div></td></tr>';
+const loaderHTML = '<tr><td colspan="4" style="text-align: center; color: #6b7280; padding: 25px;">Carregando dados... <div class="spinner" style="width: 18px; height: 18px; border-width: 3px; display: inline-block; vertical-align: middle; margin-left: 10px; margin-bottom: 0;"></div></td></tr>';
 
 window.addEventListener('DOMContentLoaded', () => {
     aplicarFiltroPrincipal();
