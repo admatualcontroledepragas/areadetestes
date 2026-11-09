@@ -20,8 +20,22 @@
 
   <!-- Estilos (Padrão Ouro) -->
   <link rel="stylesheet" href="stylebase.css">
-  <link rel="stylesheet" media="screen and (max-width: 1024px)" href="stylemobile.css">
-  <link rel="stylesheet" media="screen and (min-width: 1025px)" href="styledesktop.css">
+  
+  <!-- Deteção de Dispositivo Real (Ignora tamanho de tela/iframe) -->
+  <script>
+      var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      
+      var cssNode = document.createElement('link');
+      cssNode.rel = 'stylesheet';
+      // Se for celular de fato, injeta apenas o mobile. Se for PC, injeta apenas o desktop.
+      cssNode.href = isMobile ? 'stylemobile.css' : 'styledesktop.css';
+      document.head.appendChild(cssNode);
+
+      // Marca o corpo da página para regras de CSS no futuro
+      document.addEventListener("DOMContentLoaded", function() {
+          document.body.classList.add(isMobile ? "aparelho-mobile" : "aparelho-desktop");
+      });
+  </script>
 </head>
 <body>
  
@@ -81,7 +95,7 @@
                 <thead>
                   <tr>
                     <th style="width: 25%;">Cliente</th>
-                    <th style="width: 20%;">Endereço</th>
+                    <th style="width: 20%;">Endereço/Placa</th>
                     <th style="width: 15%;">Serviço</th>
                     <th style="width: 10%;">Data</th>
                     <th style="width: 10%; text-align: center;">Código</th>
