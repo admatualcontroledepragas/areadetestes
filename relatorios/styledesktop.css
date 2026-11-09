@@ -118,9 +118,9 @@ body {
 }
 
 /* Centraliza a célula de Ações e a de Docs (as duas últimas colunas) */
-/* Agora com 120px porque os botões de texto gigantes viraram ícones compactos */
+/* ATENÇÃO: O :not([colspan]) previne que a linha de "Carregando" seja espremida! */
 .styled-table th:nth-last-child(1), 
-.styled-table td:nth-last-child(1) {
+.styled-table td:nth-last-child(1):not([colspan]) {
     text-align: center !important; 
     vertical-align: middle !important; 
     width: 120px !important; 
@@ -128,7 +128,7 @@ body {
 }
 
 .styled-table th:nth-last-child(2), 
-.styled-table td:nth-last-child(2) {
+.styled-table td:nth-last-child(2):not([colspan]) {
     text-align: center !important; 
     vertical-align: middle !important; 
     width: 120px !important; 
@@ -136,8 +136,8 @@ body {
 }
 
 /* Mantém os ícones alinhados na horizontal sem quebrar linha */
-.styled-table td .actions, 
-.styled-table td > div {
+/* ATENÇÃO: Removido ".styled-table td > div" que estava quebrando o spinner! */
+.styled-table td .actions {
     display: flex !important;
     flex-direction: row !important;
     justify-content: center !important; 
