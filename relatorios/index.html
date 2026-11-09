@@ -1,16 +1,17 @@
+@@ -1,348 +1,348 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Sistema de Gestão - Relatórios</title>
-  
+
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
- 
+
   <!-- Link para o Manifest do PWA -->
   <link rel="manifest" href="../manifest.json">
-  
+
   <!-- Porteiro Visual: Verifica se o usuário passou pelo menu principal -->
   <script>
       if (sessionStorage.getItem("sessaoAtiva") !== "true") {
@@ -20,28 +21,14 @@
 
   <!-- Estilos (Padrão Ouro) -->
   <link rel="stylesheet" href="stylebase.css">
-  
-  <!-- Deteção de Dispositivo Real (Ignora tamanho de tela/iframe) -->
-  <script>
-      var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      
-      var cssNode = document.createElement('link');
-      cssNode.rel = 'stylesheet';
-      // Se for celular de fato, injeta apenas o mobile. Se for PC, injeta apenas o desktop.
-      cssNode.href = isMobile ? 'stylemobile.css' : 'styledesktop.css';
-      document.head.appendChild(cssNode);
-
-      // Marca o corpo da página para regras de CSS no futuro
-      document.addEventListener("DOMContentLoaded", function() {
-          document.body.classList.add(isMobile ? "aparelho-mobile" : "aparelho-desktop");
-      });
-  </script>
+  <link rel="stylesheet" media="screen and (max-width: 1024px)" href="stylemobile.css">
+  <link rel="stylesheet" media="screen and (min-width: 1025px)" href="styledesktop.css">
 </head>
 <body>
- 
+
   <!-- Toast Nativo -->
   <div id="toast">Mensagem...</div>
- 
+
   <!-- MODAL CUSTOMIZADO GERAL (Avisos e Confirmações) -->
   <div id="modal-sistema" class="modal-overlay">
       <div class="modal-box">
@@ -53,7 +40,7 @@
   </div>
 
   <div id="app-container" class="dashboard-container">
-    
+
     <div class="navbar">
       <h1><span class="material-icons" style="color:var(--primary-color);">assignment_turned_in</span> Relatórios</h1>
       <div style="display:flex; align-items:center;">
@@ -64,9 +51,9 @@
         <span class="btn-sair" onclick="fazerLogout()">Sair</span>
       </div>
     </div>
- 
+
     <div class="content">
- 
+
       <!-- ========================================== -->
       <!-- VIEW 1: DASHBOARD PRINCIPAL                -->
       <!-- ========================================== -->
@@ -75,19 +62,19 @@
           <button class="tab-btn active" id="tabImovel" onclick="mudarAbaDashboard('Imovel')"><span class="material-icons" style="font-size:18px;">home</span> Imóveis</button>
           <button class="tab-btn" id="tabVeiculo" onclick="mudarAbaDashboard('Veiculo')"><span class="material-icons" style="font-size:18px;">directions_car</span> Veículos</button>
         </div>
-        
+
         <div class="metrics-container">
           <div class="card-metric">
             <span id="lblTotal">Total de Imóveis</span>
             <strong id="dashTotal">0</strong>
           </div>
         </div>
-        
+
         <div class="action-bar">
           <button class="btn-action btn-historico" onclick="abrirHistorico()"><span class="material-icons" style="font-size:18px;">manage_search</span> Histórico</button>
           <button class="btn-action btn-novo" onclick="abrirModalSelecao()"><span class="material-icons" style="font-size:18px;">add_circle</span> Novo Registro</button>
         </div>
-        
+
         <div class="table-container">
           <h3 class="titulo-tela" style="margin-top:0; color:#111827; font-size:16px; margin-bottom: 15px;">Últimas emissões</h3>
           <div style="overflow-x: auto;">
@@ -115,7 +102,7 @@
           </div>
         </div>
       </div>
- 
+
       <!-- ========================================== -->
       <!-- VIEW 2: HISTÓRICO COMPLETO                 -->
       <!-- ========================================== -->
@@ -126,7 +113,7 @@
              <span class="material-icons" style="font-size:18px;">arrow_back</span> Voltar
           </button>
         </div>
-        
+
         <!-- FILTROS SEPARADOS EM CARD -->
         <div class="filtros-card">
             <!-- ABAS DENTRO DO HISTÓRICO -->
@@ -160,7 +147,7 @@
                   <label class="title-label" style="font-size: 11px; text-transform: uppercase;">Data Final</label>
                   <input type="date" id="filtroDataFim" class="form-input">
                 </div>
-                
+
                 <!-- BOTÕES MOVIDOS PARA DENTRO DO GRID (3ª Coluna) -->
                 <div style="display: flex; gap: 10px; margin-bottom: 10px; height: 43px;">
                     <button class="btn-action btn-historico" onclick="limparFiltros()" style="flex: 1; margin: 0; justify-content: center;">
@@ -172,7 +159,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="table-container">
             <div style="overflow-x: auto;">
               <table class="styled-table">
@@ -204,12 +191,12 @@
             </div>
         </div>
       </div>
- 
+
       <!-- ========================================== -->
       <!-- VIEW 3: FORMULÁRIOS                        -->
       <!-- ========================================== -->
       <div id="view-formulario" class="view-section">
-        
+
         <div style="display:flex; justify-content:flex-end; align-items:center; margin-bottom:20px;">
             <button onclick="fecharFormulario()" class="btn-action btn-historico">
                 <span class="material-icons" style="font-size:18px;">arrow_back</span> Voltar
@@ -221,11 +208,11 @@
             <h2 id="tituloFormulario" class="titulo-tela" style="color: var(--primary-color);">Novo Registro</h2>
             <p>Preencha os dados abaixo para salvar no sistema.</p>
           </div>
-          
+
           <form id="formulario">
-            
+
             <div class="form-section-title">Dados Principais</div>
-            
+
             <div class="form-grid">
               <div class="form-group" style="grid-column: 1 / -1;">
                 <label class="title-label">Cliente</label>
@@ -241,9 +228,9 @@
                 <input type="text" id="campo2" class="form-input" required>
               </div>
             </div>
- 
+
             <div class="form-section-title">Execução</div>
- 
+
             <div class="form-grid">
               <div class="form-group">
                 <label class="title-label">Data Realização</label>
@@ -257,9 +244,9 @@
                 </div>
               </div>
             </div>
- 
+
             <div class="form-section-title">Garantia & Colaboradores</div>
- 
+
             <div class="form-grid">
               <div class="form-group">
                 <label class="title-label">Garantia</label>
@@ -274,12 +261,12 @@
                 </select>
                 <input type="number" id="campo6_manual" class="form-input" style="margin-top:5px; display:none;" placeholder="Digite os dias...">
               </div>
-              
+
               <div class="form-group">
                 <label class="title-label">Validade (Calculada)</label>
                 <input type="date" id="campo7" class="form-input" readonly>
               </div>
-              
+
               <div class="form-group" style="grid-column: 1 / -1;">
                 <label class="title-label">Equipe Técnica</label>
                 <div class="multiselect">
@@ -292,36 +279,38 @@
                 <input type="text" id="campo8_manual" class="form-input" style="margin-top:5px; display:none;" placeholder="Nome do colaborador extra...">
               </div>
             </div>
- 
+
             <div class="form-section-title">Detalhes do Serviço</div>
- 
+
             <div class="form-group" style="grid-column: 1 / -1;">
               <label class="title-label">Tipo de Serviço</label>
               <select id="campo9" class="form-input"></select>
             </div>
-            
+
             <div class="form-group" style="margin-top:10px; grid-column: 1 / -1;">
               <input type="text" id="descReservatorio" class="form-input" placeholder="Descreva os reservatórios (Ex: 1x 1000L + Cisterna)..." style="display:none;">
             </div>
- 
+
             <div class="form-actions">
               <button type="button" class="btn-cancel" onclick="fecharFormulario()">Cancelar</button>
               <button type="submit" id="btnSalvarForm" class="btn-action btn-novo"><span class="material-icons" style="font-size: 18px;">save</span> Salvar Registro</button>
             </div>
- 
+
           </form>
         </div>
       </div>
- 
+
     </div>
   </div>
- 
+
   <!-- MODAIS RESTANTES -->
   <div id="modal-selecao" class="modal-overlay">
     <div class="modal-box">
       <h3 style="color: var(--primary-color); margin-bottom: 10px;">Novo Registro</h3>
+      <p style="font-size: 14px; color: #6b7280;">Selecione onde deseja salvar:</p>
       <p style="font-size: 14px; color: #6b7280; margin-bottom: 20px;">Selecione onde deseja salvar:</p>
-      
+
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 20px;">
       <div style="display: flex; flex-direction: column; gap: 12px;">
           <button class="btn-opcao btn-imovel" onclick="iniciarRegistro('Imovel')"><span class="material-icons">home</span> Imóveis</button>
           <button class="btn-opcao btn-veiculo" onclick="iniciarRegistro('Veiculo')"><span class="material-icons">directions_car</span> Veículos</button>
@@ -330,18 +319,18 @@
       <button class="btn-cancel" style="width: 100%; margin-top: 15px;" onclick="document.getElementById('modal-selecao').style.display='none'">Cancelar</button>
     </div>
   </div>
- 
+
   <div id="modal-clientes" class="modal-overlay" style="z-index: 4000;">
     <div class="modal-box md">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--cor-borda); padding-bottom: 10px;">
           <h3 style="color: var(--primary-color); display:flex; align-items:center; gap:8px;"><span class="material-icons">search</span> Importar Cliente</h3>
           <button class="icon-btn" onclick="document.getElementById('modal-clientes').style.display='none'"><span class="material-icons">close</span></button>
       </div>
-      
+
       <div class="form-group">
           <input type="text" id="buscaCliente" class="form-input" placeholder="🔍 Buscar nome..." onkeyup="filtrarListaClientes()">
       </div>
-      
+
       <div id="listaClientes" class="list-group-import">
           <div style="padding:20px; text-align:center; color:#999;">Carregando...</div>
       </div>
@@ -355,7 +344,7 @@
       <p style="color: #6b7280; margin-top: 10px; font-size: 14px;">Gerando PDFs e atualizando a base de dados.</p>
     </div>
   </div>
-   
+
   <!-- Ligação para o novo ficheiro JavaScript -->
   <script src="script.js"></script>
 </body>
